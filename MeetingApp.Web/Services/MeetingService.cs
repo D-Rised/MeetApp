@@ -12,22 +12,34 @@ namespace MeetingApp.Web.Services
 {
     public class MeetingService
     {
-        private readonly UsersRepository _usersRepository;
-        private readonly MeetingsRepository _meetingsRepository;
+        private readonly DbRepository _DbRepository;
 
-        public MeetingService(UsersRepository usersRepository, MeetingsRepository meetingsRepository)
+        public MeetingService(DbRepository DbRepository)
         {
-            _usersRepository = usersRepository;
-            _meetingsRepository = meetingsRepository;
+            _DbRepository = DbRepository;
         }
 
         public User GetUserByLogin(string login)
         {
-            return _usersRepository.Get<User>().FirstOrDefault(x => x.login == login);
+            return _DbRepository.Get<User>().FirstOrDefault(x => x.login == login);
+        }
+        public List<Meeting> GetAllMeetingsForUser(User user)
+        {
+            List<Meeting> meetings = _DbRepository.GetAllMeetingsForUser(user).ToList();
+            return meetings;
+        }
+        public List<Dates> GetAllDatesForMeeting(Meeting meeting)
+        {
+            List<Dates> dates = _DbRepository.GetAllDatesForMeeting(meeting).ToList();
+            return dates;
         }
         public void CreateNewUser(User user)
         {
-            _usersRepository.Add(user);
+            _DbRepository.Add(user);
+        }
+        public void CreateNewMeeting(Meeting meeting)
+        {
+            _DbRepository.Add(meeting);
         }
     }
 }

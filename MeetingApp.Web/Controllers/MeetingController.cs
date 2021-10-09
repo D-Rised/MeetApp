@@ -14,20 +14,23 @@ namespace MeetingApp.Web.Controllers
     [Authorize]
     public class MeetingController : Controller
     {
-        private readonly MeetingService _authService;
+        private readonly MeetingService _meetingService;
 
         public MeetingController(MeetingService authService)
         {
-            _authService = authService;
+            _meetingService = authService;
         }
 
-        public IActionResult Index()
+        public IActionResult MainMenu()
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            User user = _meetingService.GetUserByLogin(login);
             if (login != "")
             {
-                User user = _authService.GetUserByLogin(login);
-                return View(user);
+                MainMenuViewModel modelVM = new MainMenuViewModel();
+                modelVM.MeetingList = _meetingService.GetAllMeetingsForUser(user);
+                modelVM.userLogin = user.login;
+                return View(modelVM);
             }
             else
             {
@@ -37,15 +40,17 @@ namespace MeetingApp.Web.Controllers
         public IActionResult CreateMeeting()
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            User user = _meetingService.GetUserByLogin(login);
             if (login != "")
             {
-                CreateEditDatesViewModel modelVM = new CreateEditDatesViewModel();
+                CreateMeetingViewModel modelVM = new CreateMeetingViewModel();
                 Dates dates = new Dates() {
                     dateStart = DateTime.Now,
                     dateEnd = DateTime.Now.AddHours(1),
                 };
                 modelVM.DatesList = new List<Dates>();
                 modelVM.title = "Dune";
+                modelVM.userLogin = user.login;
                 modelVM.DatesList.Add(dates);
                 return View(modelVM);
             }
@@ -56,10 +61,10 @@ namespace MeetingApp.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateMeeting(CreateEditDatesViewModel createEditDatesViewModel, string action)
+        public IActionResult CreateMeeting(CreateMeetingViewModel createEditDatesViewModel, string action)
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
-            User user = _authService.GetUserByLogin(login);
+            User user = _meetingService.GetUserByLogin(login);
             if (action == "create meeting")
             {
                 Meeting newMeeting = new Meeting();
@@ -68,6 +73,9 @@ namespace MeetingApp.Web.Controllers
                 newMeeting.datesList = createEditDatesViewModel.DatesList;
                 newMeeting.user_Id = user.Id;
                 newMeeting.state = "selection";
+
+                _meetingService.CreateNewMeeting(newMeeting);
+
                 return RedirectToAction("SignIn", "Auth");
             }
             else if (action == "add row")
@@ -87,25 +95,36 @@ namespace MeetingApp.Web.Controllers
             }
             return RedirectToAction("SignIn", "Auth");
         }
+
+        public IActionResult SetupMeeting(int id)
+        {
+            string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            User user = _meetingService.GetUserByLogin(login);
+            List<Meeting> meetings = _meetingService.GetAllMeetingsForUser(user);
+
+            SetupMeetingViewModel setupMeetingViewModel = new SetupMeetingViewModel();
+            setupMeetingViewModel.title = meetings[id].title;
+            setupMeetingViewModel.userLogin = user.login;
+            setupMeetingViewModel.DatesList = _meetingService.GetAllDatesForMeeting(meetings[id]);
+            return View(setupMeetingViewModel);
+        }
     }
 
-    public class CreateEditMeetingViewModel
+    public class MainMenuViewModel
     {
-        public int Id { get; set; }
-        public IList<MeetingViewModel> MeetingList { get; set; }
+        public string userLogin { get; set; }
+        public IList<Meeting> MeetingList { get; set; }
     }
-    public class MeetingViewModel
+    public class CreateMeetingViewModel
     {
-        public Guid Id { get; set; }
         public string title { get; set; }
-        public DateTime dateStart { get; set; }
-        public DateTime dateEnd { get; set; }
-        public int user_Id { get; set; }
+        public string userLogin { get; set; }
+        public IList<Dates> DatesList { get; set; }
     }
-    public class CreateEditDatesViewModel
+    public class SetupMeetingViewModel
     {
-        public int Id { get; set; }
         public string title { get; set; }
+        public string userLogin { get; set; }
         public IList<Dates> DatesList { get; set; }
     }
 }

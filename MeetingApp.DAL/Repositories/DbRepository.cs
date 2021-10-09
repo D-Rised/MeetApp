@@ -8,18 +8,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeetingApp.DAL.Repositories
 {
-    public class UsersRepository
+    public class DbRepository
     {
         private readonly DataContext _context;
         
-        public UsersRepository(DataContext context)
+        public DbRepository(DataContext context)
         {
             _context = context;
         }
 
-        public IQueryable<User> GetUsers()
+        public IQueryable<User> GetAllUsers()
         {
             return _context.Users.OrderBy(x => x.login);
+        }
+        public IQueryable<Meeting> GetAllMeetingsForUser(User user)
+        {
+            return _context.Meetings.Where(x => x.user_Id == user.Id);
+        }
+        public IQueryable<Dates> GetAllDatesForMeeting(Meeting meeting)
+        {
+            return _context.Dates.Where(x => x.meetingId == meeting.Id);
         }
 
         public IQueryable<T> Get<T>() where T : class
@@ -53,6 +61,5 @@ namespace MeetingApp.DAL.Repositories
             _context.Users.Remove(entity);
             _context.SaveChanges();
         }
-
     }
 }

@@ -12,9 +12,9 @@ namespace MeetingApp.Web.Services
 {
     public class AuthService
     {
-        private readonly UsersRepository _usersRepository;
+        private readonly DbRepository _usersRepository;
 
-        public AuthService(UsersRepository usersRepository)
+        public AuthService(DbRepository usersRepository)
         {
             _usersRepository = usersRepository;
         }

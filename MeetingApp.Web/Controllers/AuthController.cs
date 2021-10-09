@@ -27,7 +27,7 @@ namespace MeetingApp.Web.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("CreateMeeting", "Meeting");
+                return RedirectToAction("MainMenu", "Meeting");
             }
             else
             {

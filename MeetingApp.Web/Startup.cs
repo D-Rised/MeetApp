@@ -35,8 +35,7 @@ namespace MeetingApp
 
             services.AddAuthorization();
 
-            services.AddTransient<UsersRepository>();
-            services.AddTransient<MeetingsRepository>();
+            services.AddTransient<DbRepository>();
             services.AddTransient<AuthService>();
             services.AddTransient<MeetingService>();
 

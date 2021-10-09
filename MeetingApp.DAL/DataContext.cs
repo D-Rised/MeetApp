@@ -8,6 +8,7 @@ namespace MeetingApp.DAL
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Meeting> Meetings { get; set; }
+        public DbSet<Dates> Dates { get; set; }
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
 

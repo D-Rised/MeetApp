@@ -9,6 +9,7 @@ namespace MeetingApp.DAL.Models
     public class Dates
     {
         public int Id { get; set; }
+        public Guid meetingId { get; set; }
         public DateTime dateStart { get; set; }
         public DateTime dateEnd { get; set; }
     }

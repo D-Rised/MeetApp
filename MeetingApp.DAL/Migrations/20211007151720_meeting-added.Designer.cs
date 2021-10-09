@@ -4,14 +4,16 @@ using MeetingApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MeetingApp.DAL.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20211007151720_meeting-added")]
+    partial class meetingadded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -19,43 +21,16 @@ namespace MeetingApp.DAL.Migrations
                 .HasAnnotation("ProductVersion", "5.0.10")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("MeetingApp.DAL.Models.Dates", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<Guid?>("MeetingId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("dateEnd")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("dateStart")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MeetingId");
-
-                    b.ToTable("Dates");
-                });
-
             modelBuilder.Entity("MeetingApp.DAL.Models.Meeting", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("dateFinal")
+                    b.Property<DateTime>("date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("state")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("title")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("user_Id")
@@ -82,18 +57,6 @@ namespace MeetingApp.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("MeetingApp.DAL.Models.Dates", b =>
-                {
-                    b.HasOne("MeetingApp.DAL.Models.Meeting", null)
-                        .WithMany("datesList")
-                        .HasForeignKey("MeetingId");
-                });
-
-            modelBuilder.Entity("MeetingApp.DAL.Models.Meeting", b =>
-                {
-                    b.Navigation("datesList");
                 });
 #pragma warning restore 612, 618
         }

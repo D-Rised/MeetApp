@@ -6,10 +6,10 @@ namespace MeetingApp.DAL
 {
     public class DataContext : DbContext
     {
-        DbSet<User> Users { get; set; }
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
-        {
+        public DbSet<User> Users { get; set; }
+        public DbSet<Meeting> Meetings { get; set; }
+        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
-        }
+
     }
 }

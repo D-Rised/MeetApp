@@ -9,7 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MeetingApp.DAL;
+using MeetingApp.DAL.Repositories;
+using MeetingApp.Web.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace MeetingApp
 {
@@ -24,11 +27,36 @@ namespace MeetingApp
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication("Cookie")
+                .AddCookie("Cookie", options =>
+                {
+                    options.LoginPath = "/Auth/SignIn";
+                });
+
+            services.AddAuthorization();
+
+            services.AddTransient<UsersRepository>();
+            services.AddTransient<MeetingsRepository>();
+            services.AddTransient<AuthService>();
+            services.AddTransient<MeetingService>();
+
             services.AddControllersWithViews();
 
             services.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            });
+
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
             });
         }
 
@@ -48,6 +76,7 @@ namespace MeetingApp
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

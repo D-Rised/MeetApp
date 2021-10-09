@@ -6,12 +6,20 @@
     @using (Html.BeginForm("SignIn", "Auth", FormMethod.Post))
     {
         <div class="form-group">
-            <input type="text" class="form-control" name="name" placeholder="Логин" />
-            <input type="text" class="form-control" name="password" placeholder="Пароль" />
+            <input type="text" class="form-control" name="_login" placeholder="Login" />
+            <input type="text" class="form-control" name="_password" placeholder="Password" />
         </div>
         <div class="form-group">
-            <button name="action" value="login" class="btn btn-primary">Войти</button>
-            <button name="action" value="register" class="btn btn-primary">Зарегистрироваться</button>
+            <button name="action" value="login" class="btn btn-light">Login</button>
+            <button name="action" value="register" class="btn btn-light">Register</button>
         </div>
+    }
+    @if (ViewBag.Message != null)
+    {
+        <script type="text/javascript">
+            window.onload = function () {
+                alert("@ViewBag.Message");
+            };
+        </script>
     }
 </div>

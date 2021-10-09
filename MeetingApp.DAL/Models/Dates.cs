@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace MeetingApp.DAL.Models
 {
-    public class User
+    public class Dates
     {
         public int Id { get; set; }
-        public string login { get; set; }
-        public string password { get; set; }
+        public DateTime dateStart { get; set; }
+        public DateTime dateEnd { get; set; }
     }
 }

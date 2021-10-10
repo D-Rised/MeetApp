@@ -28,11 +28,6 @@ namespace MeetingApp.Web.Services
             List<Meeting> meetings = _DbRepository.GetAllMeetingsForUser(user).ToList();
             return meetings;
         }
-        public List<Dates> GetAllDatesForMeeting(Meeting meeting)
-        {
-            List<Dates> dates = _DbRepository.GetAllDatesForMeeting(meeting).ToList();
-            return dates;
-        }
         public void CreateNewUser(User user)
         {
             _DbRepository.Add(user);
@@ -40,6 +35,14 @@ namespace MeetingApp.Web.Services
         public void CreateNewMeeting(Meeting meeting)
         {
             _DbRepository.Add(meeting);
+        }
+        public void SaveAll()
+        {
+            _DbRepository.SaveAll();
+        }
+        public void DeleteMeeting(Meeting meeting)
+        {
+            _DbRepository.DeleteMeeting(meeting);
         }
     }
 }

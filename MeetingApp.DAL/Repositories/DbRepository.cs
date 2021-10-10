@@ -21,13 +21,11 @@ namespace MeetingApp.DAL.Repositories
         {
             return _context.Users.OrderBy(x => x.login);
         }
+
         public IQueryable<Meeting> GetAllMeetingsForUser(User user)
         {
-            return _context.Meetings.Where(x => x.user_Id == user.Id);
-        }
-        public IQueryable<Dates> GetAllDatesForMeeting(Meeting meeting)
-        {
-            return _context.Dates.Where(x => x.meetingId == meeting.Id);
+            var meetings = _context.Meetings.Where(x => x.user_Id == user.Id).Include(c => c.datesList);
+            return meetings;
         }
 
         public IQueryable<T> Get<T>() where T : class
@@ -41,19 +39,14 @@ namespace MeetingApp.DAL.Repositories
             _context.SaveChanges();
         }
 
-        public int SaveUser(User entity)
+        public void SaveAll()
         {
-            if (entity.Id == default)
-            {
-                _context.Entry(entity).State = EntityState.Added;
-            }
-            else
-            {
-                _context.Entry(entity).State = EntityState.Modified;
-            }
             _context.SaveChanges();
-
-            return entity.Id;
+        }
+        public void DeleteMeeting(Meeting meeting)
+        {
+            _context.Meetings.Remove(meeting);
+            _context.SaveChanges();
         }
 
         public void DeleteUser(User entity)

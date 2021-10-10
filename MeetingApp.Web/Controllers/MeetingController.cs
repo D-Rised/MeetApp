@@ -56,7 +56,7 @@ namespace MeetingApp.Web.Controllers
             }
             else
             {
-                return RedirectToAction("SignIn", "Auth");
+                return RedirectToAction("MainMenu", "Meeting");
             }
         }
 
@@ -103,10 +103,65 @@ namespace MeetingApp.Web.Controllers
             List<Meeting> meetings = _meetingService.GetAllMeetingsForUser(user);
 
             SetupMeetingViewModel setupMeetingViewModel = new SetupMeetingViewModel();
+            setupMeetingViewModel.meetingId = id;
             setupMeetingViewModel.title = meetings[id].title;
             setupMeetingViewModel.userLogin = user.login;
-            setupMeetingViewModel.DatesList = _meetingService.GetAllDatesForMeeting(meetings[id]);
+            setupMeetingViewModel.DatesList = meetings[id].datesList;
             return View(setupMeetingViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult SetupMeeting(SetupMeetingViewModel setupMeetingViewModel, int id, string decision)
+        {
+            string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            User user = _meetingService.GetUserByLogin(login);
+            List<Meeting> meetings = _meetingService.GetAllMeetingsForUser(user);
+
+            if (decision == "update meeting")
+            {
+                meetings[id].title = setupMeetingViewModel.title;
+                Debug.WriteLine(meetings[id].datesList.Count);
+                Debug.WriteLine(setupMeetingViewModel.DatesList.Count);
+                meetings[id].datesList = setupMeetingViewModel.DatesList;
+                _meetingService.SaveAll();
+
+                return View(setupMeetingViewModel);
+            }
+            else if (decision == "add date")
+            {
+                Dates dates = new Dates()
+                {
+                    dateStart = DateTime.Now,
+                    dateEnd = DateTime.Now.AddHours(1),
+                };
+                setupMeetingViewModel.DatesList.Add(dates);
+
+                return View(setupMeetingViewModel);
+            }
+            else if (decision == "remove date")
+            {
+                setupMeetingViewModel.DatesList.RemoveAt(id);
+
+                return View(setupMeetingViewModel);
+            }
+            else if (decision == "calculate meeting")
+            {
+                meetings[id].title = setupMeetingViewModel.title;
+                meetings[id].datesList = setupMeetingViewModel.DatesList;
+                _meetingService.SaveAll();
+
+                return View(setupMeetingViewModel);
+            }
+            else if (decision == "delete meeting")
+            {
+                _meetingService.DeleteMeeting(meetings[id]);
+
+                return RedirectToAction("MainMenu", "Meeting");
+            }
+            else
+            {
+                return RedirectToAction("MainMenu", "Meeting");
+            }
         }
     }
 
@@ -123,6 +178,7 @@ namespace MeetingApp.Web.Controllers
     }
     public class SetupMeetingViewModel
     {
+        public int meetingId { get; set; }
         public string title { get; set; }
         public string userLogin { get; set; }
         public IList<Dates> DatesList { get; set; }

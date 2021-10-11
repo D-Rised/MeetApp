@@ -17,11 +17,11 @@
         <div class="col-xs-12" style="height:50px;"></div>
 
         <h5>Join to meeting</h5>
-        @using (Html.BeginForm("JoinEvent", "Meeting", FormMethod.Post))
+        @using (Html.BeginForm("MainMenu", "Meeting", FormMethod.Post))
         {
             <div class="input-group mb-3">
                 <button name="action" value="join" class="btn btn-light">Join</button>
-                <input type="text" class="form-control" id="_key" placeholder="Key">
+                <input name="Id" type="text" class="form-control" placeholder="Key">
             </div>
         }
 
@@ -32,7 +32,7 @@
 
         <div class="col-xs-12" style="height:50px;"></div>
 
-        <h5>My meetings</h5>
+        <h5>Owned meetings</h5>
         <div class="row">
             <table id="myTable" class=" table order-list">
                 <thead>
@@ -59,6 +59,44 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="col-xs-12" style="height:50px;"></div>
+
+        <h5>Meetings</h5>
+        <div class="row">
+            <table id="myTable" class=" table order-list">
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>State</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.memberMeetings.Count; i++)
+                    {
+                        <tr>
+                            <td class="col-sm-4">
+                                <p>@Model.memberMeetings[i].title</p>
+                            </td>
+                            <td class="col-sm-4">
+                                <p>@Model.memberMeetings[i].state</p>
+                            </td>
+                            <td class="col-sm-2">
+                                <a class="btn btn-light" asp-controller="Meeting" asp-action="OpenMeeting" asp-route-id="@i">Open</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="col-4"></div>
+    @if (ViewBag.Message != null)
+    {
+        <script type="text/javascript">
+            window.onload = function () {
+                alert("@ViewBag.Message");
+            };
+        </script>
+    }
 </div>

@@ -24,7 +24,7 @@ namespace MeetingApp.DAL.Repositories
 
         public IQueryable<Meeting> GetAllMeetings()
         {
-            var meetings = _context.Meetings.Include(x => x.datesList).Include(c => c.membersList);
+            var meetings = _context.Meetings.Include(x => x.datesList).Include(x => x.membersList);
             return meetings;
         }
 
@@ -52,6 +52,11 @@ namespace MeetingApp.DAL.Repositories
         public void DeleteUser(User entity)
         {
             _context.Users.Remove(entity);
+            _context.SaveChanges();
+        }
+        public void DeleteMember(Member entity)
+        {
+            _context.Members.Remove(entity);
             _context.SaveChanges();
         }
     }

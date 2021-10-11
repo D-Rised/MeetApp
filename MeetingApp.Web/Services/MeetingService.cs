@@ -18,11 +18,15 @@ namespace MeetingApp.Web.Services
         {
             _DbRepository = DbRepository;
         }
-
+        public List<User> GetAllUsers()
+        {
+            return _DbRepository.GetAllUsers().ToList();
+        }
         public User GetUserByLogin(string login)
         {
             return _DbRepository.Get<User>().FirstOrDefault(x => x.login == login);
         }
+
         public List<Meeting> GetAllOwnedMeetingsForUser(User user)
         {
             List<Meeting> meetings = _DbRepository.GetAllMeetings().ToList();
@@ -57,6 +61,7 @@ namespace MeetingApp.Web.Services
             }
             return memberMeetings;
         }
+       
         public void CreateNewUser(User user)
         {
             _DbRepository.Add(user);
@@ -65,9 +70,39 @@ namespace MeetingApp.Web.Services
         {
             _DbRepository.Add(meeting);
         }
+        
+        public string JoinMeeting(User user, Guid meetingId)
+        {
+            List<Meeting> meetings = _DbRepository.GetAllMeetings().ToList();
+            foreach (var meeting in meetings)
+            {
+                if (meeting.Id == meetingId)
+                {
+                    for (int i = 0; i < meeting.membersList.Count; i++)
+                    {
+                        if (meeting.membersList[i].userId == user.Id)
+                        {
+                            return "user already exist";
+                        }
+                    }
+                    Member member = new Member();
+                    member.userId = user.Id;
+                    member.meetingId = meeting.Id;
+                    member.role = "member";
+                    _DbRepository.Add(member);
+                    return "joined";
+                }
+            }
+            return "no found";
+        }
+
         public void SaveAll()
         {
             _DbRepository.SaveAll();
+        }
+        public void DeleteMember(Member member)
+        {
+            _DbRepository.DeleteMember(member);
         }
         public void DeleteMeeting(Meeting meeting)
         {

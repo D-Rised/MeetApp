@@ -18,7 +18,7 @@ namespace MeetingApp.DAL.Models
 
         [Required]
         [ForeignKey("meetingId")]
-        public IList<Members> membersList { get; set; }
+        public IList<Member> membersList { get; set; }
 
         public DateTime dateFinal { get; set; }
 

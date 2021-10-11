@@ -63,7 +63,7 @@ namespace MeetingApp.DAL.Migrations
                     b.ToTable("Meetings");
                 });
 
-            modelBuilder.Entity("MeetingApp.DAL.Models.Members", b =>
+            modelBuilder.Entity("MeetingApp.DAL.Models.Member", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -112,7 +112,7 @@ namespace MeetingApp.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MeetingApp.DAL.Models.Members", b =>
+            modelBuilder.Entity("MeetingApp.DAL.Models.Member", b =>
                 {
                     b.HasOne("MeetingApp.DAL.Models.Meeting", null)
                         .WithMany("membersList")

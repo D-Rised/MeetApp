@@ -21,7 +21,6 @@ namespace MeetingApp.Web.Controllers
             _meetingService = authService;
         }
 
-        [Authorize]
         public IActionResult MainMenu()
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
@@ -30,7 +29,7 @@ namespace MeetingApp.Web.Controllers
             {
                 MainMenuViewModel modelVM = new MainMenuViewModel();
                 modelVM.ownedMeetings = _meetingService.GetAllOwnedMeetingsForUser(user);
-                modelVM.guestMeetings = _meetingService.GetAllMemberMeetingsForUser(user);
+                modelVM.memberMeetings = _meetingService.GetAllMemberMeetingsForUser(user);
                 modelVM.userLogin = user.login;
                 return View(modelVM);
             }
@@ -39,6 +38,41 @@ namespace MeetingApp.Web.Controllers
                 return RedirectToAction("SignIn", "Auth");
             }
         }
+
+        [HttpPost]
+        public IActionResult MainMenu(string action, string Id)
+        {
+            string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            User user = _meetingService.GetUserByLogin(login);
+            if (User.Identity.IsAuthenticated)
+            {
+                if (Guid.TryParse(Id, out Guid guidId))
+                {
+                    if (_meetingService.JoinMeeting(user, guidId) == "joined")
+                    {
+                        ViewBag.Message = string.Format("You joined to meeting!");
+                    }
+                    else if (_meetingService.JoinMeeting(user, guidId) == "user already exist")
+                    {
+                        ViewBag.Message = string.Format("You already joined to this meeting!");
+                    }
+                    else
+                    {
+                        ViewBag.Message = string.Format("No meeting found for this invite key!");
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = string.Format("No meeting found for this invite key!");
+                }
+                return MainMenu();
+            }
+            else
+            {
+                return RedirectToAction("SignIn", "Auth");
+            }
+        }
+
         public IActionResult CreateMeeting()
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
@@ -73,7 +107,7 @@ namespace MeetingApp.Web.Controllers
                 newMeeting.Id = Guid.NewGuid();
                 newMeeting.title = createEditDatesViewModel.title;
                 newMeeting.datesList = createEditDatesViewModel.DatesList;
-                newMeeting.membersList = new List<Members>() { new Members() {
+                newMeeting.membersList = new List<Member>() { new Member() {
                     userId = user.Id,
                     meetingId = newMeeting.Id,
                     role = "owner"
@@ -113,16 +147,36 @@ namespace MeetingApp.Web.Controllers
             User user = _meetingService.GetUserByLogin(login);
             List<Meeting> meetings = _meetingService.GetAllOwnedMeetingsForUser(user);
 
-            SetupMeetingViewModel setupMeetingViewModel = new SetupMeetingViewModel();
-            setupMeetingViewModel.meetingId = meetings[id].Id;
-            setupMeetingViewModel.title = meetings[id].title;
-            setupMeetingViewModel.userLogin = user.login;
-            setupMeetingViewModel.DatesList = meetings[id].datesList;
-            return View(setupMeetingViewModel);
+            if (meetings.Count > id)
+            {
+                List<User> users = _meetingService.GetAllUsers();
+                List<MemberViewModel> memberVMList = new List<MemberViewModel>();
+                foreach (var userItem in users)
+                {
+                    foreach (var memberItem in meetings[id].membersList)
+                    {
+                        if (userItem.Id == memberItem.userId)
+                        {
+                            MemberViewModel memberVM = new MemberViewModel();
+                            memberVM.login = userItem.login;
+                            memberVM.role = memberItem.role;
+                            memberVMList.Add(memberVM);
+                        }
+                    }
+                }
+                SetupMeetingViewModel setupMeetingViewModel = new SetupMeetingViewModel();
+                setupMeetingViewModel.meetingId = meetings[id].Id;
+                setupMeetingViewModel.title = meetings[id].title;
+                setupMeetingViewModel.userLogin = user.login;
+                setupMeetingViewModel.DatesList = meetings[id].datesList;
+                setupMeetingViewModel.MembersList = memberVMList;
+                return View(setupMeetingViewModel);
+            }
+            return RedirectToAction("MainMenu", "Meeting");
         }
 
         [HttpPost]
-        public IActionResult SetupMeeting(SetupMeetingViewModel setupMeetingViewModel, int id, string decision)
+        public IActionResult SetupMeeting(SetupMeetingViewModel setupMeetingViewModel, string meetingId, int dateId, int memberId, string decision)
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
             User user = _meetingService.GetUserByLogin(login);
@@ -130,11 +184,23 @@ namespace MeetingApp.Web.Controllers
 
             if (decision == "update meeting")
             {
-                meetings[id].title = setupMeetingViewModel.title;
-                Debug.WriteLine(meetings[id].datesList.Count);
-                Debug.WriteLine(setupMeetingViewModel.DatesList.Count);
-                meetings[id].datesList = setupMeetingViewModel.DatesList;
-                _meetingService.SaveAll();
+                if (Guid.TryParse(meetingId, out Guid meetingIdGuid))
+                {
+                    foreach (var meeting in meetings)
+                    {
+                        if (meeting.Id == meetingIdGuid)
+                        {
+                            meeting.title = setupMeetingViewModel.title;
+                            meeting.datesList = setupMeetingViewModel.DatesList;
+                            _meetingService.SaveAll();
+                            ViewBag.Message = string.Format("Meeting successfully updated!");
+                        }
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = string.Format("Error!");
+                }
 
                 return View(setupMeetingViewModel);
             }
@@ -151,21 +217,70 @@ namespace MeetingApp.Web.Controllers
             }
             else if (decision == "remove date")
             {
-                setupMeetingViewModel.DatesList.RemoveAt(id);
+                setupMeetingViewModel.DatesList.RemoveAt(dateId);
 
+                return View(setupMeetingViewModel);
+            }
+            else if (decision == "kick member")
+            {
+                if (setupMeetingViewModel.MembersList[memberId].role != "owner")
+                {
+                    User memberToDelete = _meetingService.GetUserByLogin(setupMeetingViewModel.MembersList[memberId].login);
+
+                    if (Guid.TryParse(meetingId, out Guid meetingIdGuid))
+                    {
+                        foreach (var meeting in meetings)
+                        {
+                            if (meeting.Id == meetingIdGuid)
+                            {
+                                foreach (var member in meeting.membersList.ToList())
+                                {
+                                    if (member.userId == memberToDelete.Id)
+                                    {
+                                        _meetingService.DeleteMember(member);
+                                        setupMeetingViewModel.MembersList.RemoveAt(memberId);
+                                    }
+                                }
+                            }
+
+                            _meetingService.SaveAll();
+                            ViewBag.Message = string.Format("Member removed!");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.Message = string.Format("Error!");
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = string.Format("You cant kick owner!");
+                }
                 return View(setupMeetingViewModel);
             }
             else if (decision == "calculate meeting")
             {
-                meetings[id].title = setupMeetingViewModel.title;
-                meetings[id].datesList = setupMeetingViewModel.DatesList;
                 _meetingService.SaveAll();
 
                 return View(setupMeetingViewModel);
             }
             else if (decision == "delete meeting")
             {
-                _meetingService.DeleteMeeting(meetings[id]);
+                if (Guid.TryParse(meetingId, out Guid meetingIdGuid))
+                {
+                    foreach (var meeting in meetings)
+                    {
+                        if (meeting.Id == meetingIdGuid)
+                        {
+                            _meetingService.DeleteMeeting(meeting);
+                            ViewBag.Message = string.Format("Meeting successfully deleted!");
+                        }
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = string.Format("Error!");
+                }
 
                 return RedirectToAction("MainMenu", "Meeting");
             }
@@ -174,13 +289,47 @@ namespace MeetingApp.Web.Controllers
                 return RedirectToAction("MainMenu", "Meeting");
             }
         }
+
+        public IActionResult OpenMeeting(int id)
+        {
+            string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            User user = _meetingService.GetUserByLogin(login);
+            List<Meeting> meetings = _meetingService.GetAllMemberMeetingsForUser(user);
+
+            if (meetings.Count > id)
+            {
+                List<User> users = _meetingService.GetAllUsers();
+                List<MemberViewModel> memberVMList = new List<MemberViewModel>();
+                foreach (var userItem in users)
+                {
+                    foreach (var memberItem in meetings[id].membersList)
+                    {
+                        if (userItem.Id == memberItem.userId)
+                        {
+                            MemberViewModel memberVM = new MemberViewModel();
+                            memberVM.login = userItem.login;
+                            memberVM.role = memberItem.role;
+                            memberVMList.Add(memberVM);
+                        }
+                    }
+                }
+                SetupMeetingViewModel setupMeetingViewModel = new SetupMeetingViewModel();
+                setupMeetingViewModel.meetingId = meetings[id].Id;
+                setupMeetingViewModel.title = meetings[id].title;
+                setupMeetingViewModel.userLogin = user.login;
+                setupMeetingViewModel.DatesList = meetings[id].datesList;
+                setupMeetingViewModel.MembersList = memberVMList;
+                return View(setupMeetingViewModel);
+            }
+            return RedirectToAction("MainMenu", "Meeting");
+        }
     }
 
     public class MainMenuViewModel
     {
         public string userLogin { get; set; }
         public IList<Meeting> ownedMeetings { get; set; }
-        public IList<Meeting> guestMeetings { get; set; }
+        public IList<Meeting> memberMeetings { get; set; }
     }
     public class CreateMeetingViewModel
     {
@@ -194,5 +343,11 @@ namespace MeetingApp.Web.Controllers
         public string title { get; set; }
         public string userLogin { get; set; }
         public IList<Dates> DatesList { get; set; }
+        public IList<MemberViewModel> MembersList { get; set; }
+    }
+    public class MemberViewModel
+    {
+        public string login { get; set; }
+        public string role { get; set; }
     }
 }

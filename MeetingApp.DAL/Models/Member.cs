@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeetingApp.DAL.Models
 {
-    public class Members
+    public class Member
     {
         public int Id { get; set; }
         public Guid userId { get; set; }

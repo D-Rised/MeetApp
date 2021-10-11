@@ -23,10 +23,39 @@ namespace MeetingApp.Web.Services
         {
             return _DbRepository.Get<User>().FirstOrDefault(x => x.login == login);
         }
-        public List<Meeting> GetAllMeetingsForUser(User user)
+        public List<Meeting> GetAllOwnedMeetingsForUser(User user)
         {
-            List<Meeting> meetings = _DbRepository.GetAllMeetingsForUser(user).ToList();
-            return meetings;
+            List<Meeting> meetings = _DbRepository.GetAllMeetings().ToList();
+            List<Meeting> ownedMeetings = new List<Meeting>();
+            foreach (var meeting in meetings)
+            {
+                for (int i = 0; i < meeting.membersList.Count; i++)
+                {
+                    if (meeting.membersList[i].userId == user.Id && meeting.membersList[i].role == "owner")
+                    {
+                        ownedMeetings.Add(meeting);
+                    }
+                    
+                }
+            }
+            return ownedMeetings;
+        }
+        public List<Meeting> GetAllMemberMeetingsForUser(User user)
+        {
+            List<Meeting> meetings = _DbRepository.GetAllMeetings().ToList();
+            List<Meeting> memberMeetings = new List<Meeting>();
+            foreach (var meeting in meetings)
+            {
+                for (int i = 0; i < meeting.membersList.Count; i++)
+                {
+                    if (meeting.membersList[i].userId == user.Id && meeting.membersList[i].role == "member")
+                    {
+                        memberMeetings.Add(meeting);
+                    }
+
+                }
+            }
+            return memberMeetings;
         }
         public void CreateNewUser(User user)
         {

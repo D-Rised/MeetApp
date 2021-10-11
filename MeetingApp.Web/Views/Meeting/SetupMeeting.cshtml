@@ -6,11 +6,7 @@
 
 <div class="text-center">
     <div class="row">
-        <h1 class="display-3">Meeting panel</h1>
-    </div>
-    <div class="row">
-        <a class="btn btn-light" asp-controller="Auth" asp-action="LogOut">Log Out</a>
-        <h2 class="display-5"> > @Model.userLogin</h2>
+        <h1 class="display-3">Meeting settings</h1>
     </div>
 </div>
 
@@ -32,6 +28,15 @@
                 <div class="form-group">
                     <label>Meeting name:</label>
                     <input asp-for="@Model.title" type="text" class="form-control" value="@Model.title" />
+                </div>
+            </div>
+
+            <div class="col-xs-12" style="height:10px;"></div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Meeting invite key:</label>
+                    <p class="form-control input-group-text text-black-50">@Model.meetingId</p>
                 </div>
             </div>
 
@@ -104,6 +109,12 @@
                 <div class="form-group pl-2">
                     <button asp-controller="Meeting" asp-action="SetupMeeting" asp-route-id="@Model.meetingId" asp-route-decision="delete meeting" class="btn btn-warning">Delete</button>
                 </div>
+            </div>
+
+            <div class="col-xs-12" style="height:50px;"></div>
+            
+            <div class="row">
+                <a asp-controller="Meeting" asp-action="MainMenu" class="btn btn-warning">Back to main menu</a>
             </div>
         }
     </div>

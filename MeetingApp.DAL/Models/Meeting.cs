@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MeetingApp.DAL.Models
 {
@@ -19,9 +16,11 @@ namespace MeetingApp.DAL.Models
         [ForeignKey("meetingId")]
         public IList<Dates> datesList { get; set; }
 
-        public DateTime dateFinal { get; set; }
+        [Required]
+        [ForeignKey("meetingId")]
+        public IList<Members> membersList { get; set; }
 
-        public int user_Id { get; set; }
+        public DateTime dateFinal { get; set; }
 
         public string state { get; set; }
     }

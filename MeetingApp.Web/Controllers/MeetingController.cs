@@ -21,14 +21,16 @@ namespace MeetingApp.Web.Controllers
             _meetingService = authService;
         }
 
+        [Authorize]
         public IActionResult MainMenu()
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
             User user = _meetingService.GetUserByLogin(login);
-            if (login != "")
+            if (User.Identity.IsAuthenticated)
             {
                 MainMenuViewModel modelVM = new MainMenuViewModel();
-                modelVM.MeetingList = _meetingService.GetAllMeetingsForUser(user);
+                modelVM.ownedMeetings = _meetingService.GetAllOwnedMeetingsForUser(user);
+                modelVM.guestMeetings = _meetingService.GetAllMemberMeetingsForUser(user);
                 modelVM.userLogin = user.login;
                 return View(modelVM);
             }
@@ -71,12 +73,16 @@ namespace MeetingApp.Web.Controllers
                 newMeeting.Id = Guid.NewGuid();
                 newMeeting.title = createEditDatesViewModel.title;
                 newMeeting.datesList = createEditDatesViewModel.DatesList;
-                newMeeting.user_Id = user.Id;
+                newMeeting.membersList = new List<Members>() { new Members() {
+                    userId = user.Id,
+                    meetingId = newMeeting.Id,
+                    role = "owner"
+                }};
                 newMeeting.state = "selection";
 
                 _meetingService.CreateNewMeeting(newMeeting);
 
-                return RedirectToAction("SignIn", "Auth");
+                return RedirectToAction("CreatedMeeting", "Meeting", new { @meetingId = newMeeting.Id });
             }
             else if (action == "add row")
             {
@@ -96,14 +102,19 @@ namespace MeetingApp.Web.Controllers
             return RedirectToAction("SignIn", "Auth");
         }
 
+        public IActionResult CreatedMeeting(Guid meetingId)
+        {
+            return View(meetingId);
+        }
+
         public IActionResult SetupMeeting(int id)
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
             User user = _meetingService.GetUserByLogin(login);
-            List<Meeting> meetings = _meetingService.GetAllMeetingsForUser(user);
+            List<Meeting> meetings = _meetingService.GetAllOwnedMeetingsForUser(user);
 
             SetupMeetingViewModel setupMeetingViewModel = new SetupMeetingViewModel();
-            setupMeetingViewModel.meetingId = id;
+            setupMeetingViewModel.meetingId = meetings[id].Id;
             setupMeetingViewModel.title = meetings[id].title;
             setupMeetingViewModel.userLogin = user.login;
             setupMeetingViewModel.DatesList = meetings[id].datesList;
@@ -115,7 +126,7 @@ namespace MeetingApp.Web.Controllers
         {
             string login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
             User user = _meetingService.GetUserByLogin(login);
-            List<Meeting> meetings = _meetingService.GetAllMeetingsForUser(user);
+            List<Meeting> meetings = _meetingService.GetAllOwnedMeetingsForUser(user);
 
             if (decision == "update meeting")
             {
@@ -168,7 +179,8 @@ namespace MeetingApp.Web.Controllers
     public class MainMenuViewModel
     {
         public string userLogin { get; set; }
-        public IList<Meeting> MeetingList { get; set; }
+        public IList<Meeting> ownedMeetings { get; set; }
+        public IList<Meeting> guestMeetings { get; set; }
     }
     public class CreateMeetingViewModel
     {
@@ -178,7 +190,7 @@ namespace MeetingApp.Web.Controllers
     }
     public class SetupMeetingViewModel
     {
-        public int meetingId { get; set; }
+        public Guid meetingId { get; set; }
         public string title { get; set; }
         public string userLogin { get; set; }
         public IList<Dates> DatesList { get; set; }

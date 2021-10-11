@@ -22,9 +22,9 @@ namespace MeetingApp.DAL.Repositories
             return _context.Users.OrderBy(x => x.login);
         }
 
-        public IQueryable<Meeting> GetAllMeetingsForUser(User user)
+        public IQueryable<Meeting> GetAllMeetings()
         {
-            var meetings = _context.Meetings.Where(x => x.user_Id == user.Id).Include(c => c.datesList);
+            var meetings = _context.Meetings.Include(x => x.datesList).Include(c => c.membersList);
             return meetings;
         }
 

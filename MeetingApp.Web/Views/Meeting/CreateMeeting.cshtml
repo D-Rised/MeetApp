@@ -6,11 +6,7 @@
 
 <div class="text-center">
     <div class="row">
-        <h1 class="display-3">Meeting panel</h1>
-    </div>
-    <div class="row">
-        <a class="btn btn-light" asp-controller="Auth" asp-action="LogOut">Log Out</a>
-        <h2 class="display-5"> > @Model.userLogin</h2>
+        <h1 class="display-3">Create new meeting:</h1>
     </div>
 </div>
 
@@ -92,12 +88,16 @@
                 </table>
             </div>
 
+            <div class="row">
+                <div class="form-group pl-2">
+                    <button name="action" value="create meeting" class="btn btn-light">Create meeting</button>
+                </div>
+            </div>
+
             <div class="col-xs-12" style="height:50px;"></div>
 
             <div class="row">
-                <div class="form-group pl-2">
-                    <button name="action" value="create meeting" class="btn btn-light">Create</button>
-                </div>
+                <a asp-controller="Meeting" asp-action="MainMenu" class="btn btn-warning">Back to main menu</a>
             </div>
         }
     </div>

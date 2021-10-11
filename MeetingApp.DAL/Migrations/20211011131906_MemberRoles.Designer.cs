@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MeetingApp.DAL.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20211009231507_DatesTable")]
-    partial class DatesTable
+    [Migration("20211011131906_MemberRoles")]
+    partial class MemberRoles
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -60,20 +60,39 @@ namespace MeetingApp.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("user_Id")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Meetings");
                 });
 
-            modelBuilder.Entity("MeetingApp.DAL.Models.User", b =>
+            modelBuilder.Entity("MeetingApp.DAL.Models.Members", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<Guid>("meetingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("role")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("userId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("meetingId");
+
+                    b.ToTable("Members");
+                });
+
+            modelBuilder.Entity("MeetingApp.DAL.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("login")
                         .HasColumnType("nvarchar(max)");
@@ -95,9 +114,20 @@ namespace MeetingApp.DAL.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MeetingApp.DAL.Models.Members", b =>
+                {
+                    b.HasOne("MeetingApp.DAL.Models.Meeting", null)
+                        .WithMany("membersList")
+                        .HasForeignKey("meetingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MeetingApp.DAL.Models.Meeting", b =>
                 {
                     b.Navigation("datesList");
+
+                    b.Navigation("membersList");
                 });
 #pragma warning restore 612, 618
         }

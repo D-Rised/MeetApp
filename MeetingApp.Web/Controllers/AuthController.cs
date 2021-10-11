@@ -46,7 +46,7 @@ namespace MeetingApp.Web.Controllers
                     if (user.password == _password)
                     {
                         await Authenticate(user);
-                        return RedirectToAction("Index", "Meeting");
+                        return RedirectToAction("MainMenu", "Meeting");
                     }
                     else
                     {
@@ -63,7 +63,7 @@ namespace MeetingApp.Web.Controllers
                 User user = _authService.GetUserByLogin(_login);
                 if (user == null)
                 {
-                    user = new User() { login = _login, password = _password };
+                    user = new User() { Id = Guid.NewGuid(), login = _login, password = _password };
                     _authService.CreateNewUser(user);
                 }
                 else
@@ -88,7 +88,6 @@ namespace MeetingApp.Web.Controllers
 
         public IActionResult LogOut()
         {
-            Debug.WriteLine("123");
             HttpContext.SignOutAsync("Cookie");
             return RedirectToAction("SignIn", "Auth");
         }

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MeetingApp.DAL.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20211009201122_MeetingRefactoring2")]
-    partial class MeetingRefactoring2
+    [Migration("20211011033007_MembersUpdate")]
+    partial class MembersUpdate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -28,18 +28,23 @@ namespace MeetingApp.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<Guid?>("MeetingId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("dateEnd")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("dateStart")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("meetingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("memberId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("MeetingId");
+                    b.HasIndex("meetingId");
+
+                    b.HasIndex("memberId");
 
                     b.ToTable("Dates");
                 });
@@ -53,6 +58,9 @@ namespace MeetingApp.DAL.Migrations
                     b.Property<DateTime>("dateFinal")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("ownerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("state")
                         .HasColumnType("nvarchar(max)");
 
@@ -60,20 +68,34 @@ namespace MeetingApp.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("user_Id")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Meetings");
                 });
 
-            modelBuilder.Entity("MeetingApp.DAL.Models.User", b =>
+            modelBuilder.Entity("MeetingApp.DAL.Models.Members", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<Guid>("meetingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("userId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Members");
+                });
+
+            modelBuilder.Entity("MeetingApp.DAL.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("login")
                         .HasColumnType("nvarchar(max)");
@@ -90,12 +112,23 @@ namespace MeetingApp.DAL.Migrations
                 {
                     b.HasOne("MeetingApp.DAL.Models.Meeting", null)
                         .WithMany("datesList")
-                        .HasForeignKey("MeetingId");
+                        .HasForeignKey("meetingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MeetingApp.DAL.Models.Members", null)
+                        .WithMany("dates")
+                        .HasForeignKey("memberId");
                 });
 
             modelBuilder.Entity("MeetingApp.DAL.Models.Meeting", b =>
                 {
                     b.Navigation("datesList");
+                });
+
+            modelBuilder.Entity("MeetingApp.DAL.Models.Members", b =>
+                {
+                    b.Navigation("dates");
                 });
 #pragma warning restore 612, 618
         }

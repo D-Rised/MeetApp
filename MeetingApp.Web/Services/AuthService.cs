@@ -19,7 +19,7 @@ namespace MeetingApp.Web.Services
             _usersRepository = usersRepository;
         }
 
-        public User GetUserById(int id)
+        public User GetUserById(Guid id)
         {
             return _usersRepository.Get<User>().FirstOrDefault(x => x.Id == id);
         }

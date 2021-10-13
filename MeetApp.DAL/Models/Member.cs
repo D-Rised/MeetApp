@@ -12,5 +12,6 @@ namespace MeetApp.DAL.Models
         public Guid meetId { get; set; }
         public string role { get; set; }
         public string state { get; set; }
+        public IList<Dates> datesList { get; set; }
     }
 }

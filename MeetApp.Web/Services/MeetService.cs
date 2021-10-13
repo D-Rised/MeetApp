@@ -26,6 +26,10 @@ namespace MeetApp.Web.Services
         {
             return _DbRepository.Get<User>().FirstOrDefault(x => x.Id == Id);
         }
+        public Member GetMemberByUserIdAndMeetId(Guid userId, Guid meetId)
+        {
+            return _DbRepository.Get<Member>().FirstOrDefault(x => x.userId == userId && x.meetId == meetId);
+        }
 
         public List<Meet> GetAllOwnedMeetsForUser(User user)
         {

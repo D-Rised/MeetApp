@@ -72,9 +72,18 @@
                                             </span>
                                         </div>
                                     </td>
+                                    @if (i > 0)
+                                    {
                                     <td class="col-sm-2">
                                         <button asp-controller="Meet" asp-action="OpenMeet" asp-route-meetId="@Model.meetId" asp-route-dateId="@i" asp-route-decision="remove date" class="btn btn-warning">Remove date</button>
                                     </td>
+                                    }
+                                    else
+                                    {
+                                        <td class="col-sm-2">
+                                            <a class="deleteRow"></a>
+                                        </td>
+                                    }
                                 </tr>
                             }
                         </tbody>

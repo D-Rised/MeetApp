@@ -4,14 +4,16 @@ using MeetApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MeetApp.DAL.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20211013030139_MemberDates")]
+    partial class MemberDates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,9 +28,6 @@ namespace MeetApp.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("MemberId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("dateEnd")
                         .HasColumnType("datetime2");
 
@@ -42,8 +41,6 @@ namespace MeetApp.DAL.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MemberId");
 
                     b.HasIndex("meetId");
 
@@ -116,10 +113,6 @@ namespace MeetApp.DAL.Migrations
 
             modelBuilder.Entity("MeetApp.DAL.Models.Dates", b =>
                 {
-                    b.HasOne("MeetApp.DAL.Models.Member", null)
-                        .WithMany("datesList")
-                        .HasForeignKey("MemberId");
-
                     b.HasOne("MeetApp.DAL.Models.Meet", null)
                         .WithMany("datesList")
                         .HasForeignKey("meetId")
@@ -141,11 +134,6 @@ namespace MeetApp.DAL.Migrations
                     b.Navigation("datesList");
 
                     b.Navigation("membersList");
-                });
-
-            modelBuilder.Entity("MeetApp.DAL.Models.Member", b =>
-                {
-                    b.Navigation("datesList");
                 });
 #pragma warning restore 612, 618
         }

@@ -113,13 +113,14 @@ namespace MeetApp.Web.Controllers
                 newMeet.datesList = createEditDatesViewModel.DatesList;
                 foreach (var dates in newMeet.datesList.ToList())
                 {
-                    dates.memberId = user.Id;
+                    dates.userId = user.Id;
                 }
                 newMeet.membersList = new List<Member>() { new Member() {
                     userId = user.Id,
                     meetId = newMeet.Id,
                     role = "owner",
                     state = "Ready",
+                    datesList = createEditDatesViewModel.DatesList
                 }};
                 newMeet.state = "Selection";
 
@@ -195,10 +196,10 @@ namespace MeetApp.Web.Controllers
                     DatesViewModel datesVM = new DatesViewModel();
                     datesVM.Id = dates.Id;
                     datesVM.meetId = dates.meetId;
-                    datesVM.memberId = dates.memberId;
+                    datesVM.memberId = dates.userId;
                     datesVM.dateStart = dates.dateStart;
                     datesVM.dateEnd = dates.dateEnd;
-                    datesVM.memberLogin = _meetService.GetUserById(dates.memberId).login;
+                    datesVM.memberLogin = _meetService.GetUserById(dates.userId).login;
                     datesVMList.Add(datesVM);
                 }
                 setupMeetViewModel.DatesList = datesVMList;
@@ -226,7 +227,7 @@ namespace MeetApp.Web.Controllers
                             meet.title = setupMeetViewModel.title;
                             foreach (var dates in meet.datesList.ToList())
                             {
-                                if (dates.memberId == user.Id)
+                                if (dates.userId == user.Id)
                                 {
                                     meet.datesList.Remove(dates);
                                 }
@@ -236,14 +237,10 @@ namespace MeetApp.Web.Controllers
                                 Dates dates = new Dates();
                                 dates.Id = datesItem.Id;
                                 dates.meetId = datesItem.meetId;
-                                dates.memberId = datesItem.memberId;
+                                dates.userId = user.Id;
                                 dates.dateStart = datesItem.dateStart;
                                 dates.dateEnd = datesItem.dateEnd;
                                 meet.datesList.Add(dates);
-                            }
-                            foreach (var dates in meet.datesList.ToList())
-                            {
-                                dates.memberId = user.Id;
                             }
                             _meetService.SaveAll();
                             ViewBag.Message = string.Format("Meet successfully updated!");
@@ -313,7 +310,50 @@ namespace MeetApp.Web.Controllers
             }
             else if (decision == "calculate meet")
             {
-                _meetService.SaveAll();
+                if (Guid.TryParse(meetId, out Guid meetIdGuid))
+                {
+                    foreach (var meet in meets)
+                    {
+                        if (meet.Id == meetIdGuid)
+                        {
+                            Member ownerMember = _meetService.GetMemberByUserIdAndMeetId(user.Id, meet.Id);
+                            List<Dates> crossDates = ownerMember.datesList.ToList();
+
+                            foreach (var member in meet.membersList.ToList())
+                            {
+                                if (member.userId != user.Id && member.datesList != null)
+                                {
+                                    List<Dates> memberDates = member.datesList.ToList();
+                                    if (CrossDates(crossDates, memberDates) != null)
+                                    {
+                                        crossDates = CrossDates(crossDates, memberDates);
+                                    }
+                                }
+                            }
+
+                            Dates finalDate = new Dates();
+                            finalDate.meetId = meet.Id;
+                            finalDate.userId = user.Id;
+                            finalDate.dateStart = crossDates[0].dateStart;
+                            finalDate.dateEnd = crossDates[0].dateEnd;
+                            ownerMember.datesList.Clear();
+                            ownerMember.datesList.Add(finalDate);
+                            meet.datesList.Clear();
+                            meet.datesList.Add(finalDate);
+                            meet.state = "launched";
+                            setupMeetViewModel.state = meet.state;
+                            Debug.WriteLine("Final date start: " + crossDates[0].dateStart);
+                            Debug.WriteLine("Final date end: " + crossDates[0].dateEnd);
+
+                            _meetService.SaveAll();
+                            ViewBag.Message = string.Format("Meet successfully calculated!");
+                        }
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = string.Format("Error!");
+                }
 
                 return View(setupMeetViewModel);
             }
@@ -341,6 +381,31 @@ namespace MeetApp.Web.Controllers
             {
                 return RedirectToAction("MainMenu", "Meet");
             }
+        }
+
+        public List<Dates> CrossDates(List<Dates> d1, List<Dates> d2)
+        {
+            List<Dates> crossDates = new List<Dates>();
+
+            for (int i = 0; i < d1.Count; i++)
+            {
+                for (int j = 0; j < d2.Count; j++)
+                {
+                    Dates crossDate = new Dates();
+
+                    var crossDateStart = d1[i].dateStart < d2[j].dateStart ? d2[j].dateStart : d1[i].dateStart;
+                    var crossDateEnd = d1[i].dateEnd < d2[j].dateEnd ? d1[i].dateEnd : d2[j].dateEnd;
+                    if (crossDateStart < crossDateEnd)
+                    {
+                        crossDate.meetId = d1[i].meetId;
+                        crossDate.dateStart = crossDateStart;
+                        crossDate.dateEnd = crossDateEnd;
+                        crossDates.Add(crossDate);
+                        return crossDates;
+                    }
+                }
+            }
+            return null;
         }
 
         public IActionResult OpenMeet(int id)
@@ -389,10 +454,10 @@ namespace MeetApp.Web.Controllers
                     DatesViewModel datesVM = new DatesViewModel();
                     datesVM.Id = dates.Id;
                     datesVM.meetId = dates.meetId;
-                    datesVM.memberId = dates.memberId;
+                    datesVM.memberId = dates.userId;
                     datesVM.dateStart = dates.dateStart;
                     datesVM.dateEnd = dates.dateEnd;
-                    datesVM.memberLogin = _meetService.GetUserById(dates.memberId).login;
+                    datesVM.memberLogin = _meetService.GetUserById(dates.userId).login;
                     datesVMList.Add(datesVM);
                 }
 
@@ -422,11 +487,13 @@ namespace MeetApp.Web.Controllers
                             {
                                 if (member.userId == user.Id && member.state != "Ready")
                                 {
+                                    member.datesList = new List<Dates>();
                                     foreach (var dates in meet.datesList.ToList())
                                     {
-                                        if (dates.memberId == user.Id)
+                                        if (dates.userId == user.Id)
                                         {
                                             meet.datesList.Remove(dates);
+                                            member.datesList.Remove(dates);
                                         }
                                     }
                                     foreach (var datesItem in setupMeetViewModel.DatesList)
@@ -434,10 +501,11 @@ namespace MeetApp.Web.Controllers
                                         Dates dates = new Dates();
                                         dates.Id = datesItem.Id;
                                         dates.meetId = datesItem.meetId;
-                                        dates.memberId = user.Id;
+                                        dates.userId = user.Id;
                                         dates.dateStart = datesItem.dateStart;
                                         dates.dateEnd = datesItem.dateEnd;
                                         meet.datesList.Add(dates);
+                                        member.datesList.Add(dates);
                                     }
                                     foreach (var memberVM in setupMeetViewModel.MembersList)
                                     {

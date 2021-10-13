@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims;
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -12,7 +13,7 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-                <a asp-controller="Meet" asp-action="MainMenu"  class="navbar-brand">Meet Panel</a>
+                <a asp-controller="Meet" asp-action="MainMenu" class="navbar-brand">Meet Panel</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -20,6 +21,12 @@
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
                             <a asp-controller="Meet" asp-action="MainMenu" class="btn btn-light">Main menu</a>
+                        </li>
+                        <li class="nav-item">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <a asp-controller="Meet" asp-action="MainMenu" class="btn btn-light">Profile: @User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value</a>
+                            }
                         </li>
                         <li class="nav-item">
                             <a asp-controller="Auth" asp-action="LogOut" class="btn btn-warning">Log out</a>
@@ -44,4 +51,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-    

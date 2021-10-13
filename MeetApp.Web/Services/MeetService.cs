@@ -22,6 +22,10 @@ namespace MeetApp.Web.Services
         {
             return _DbRepository.Get<User>().FirstOrDefault(x => x.login == login);
         }
+        public User GetUserById(Guid Id)
+        {
+            return _DbRepository.Get<User>().FirstOrDefault(x => x.Id == Id);
+        }
 
         public List<Meet> GetAllOwnedMeetsForUser(User user)
         {

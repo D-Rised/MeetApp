@@ -20,7 +20,7 @@ namespace MeetApp.DAL.Models
         [ForeignKey("meetId")]
         public IList<Member> membersList { get; set; }
 
-        public DateTime dateFinal { get; set; }
+        public bool fixedDate { get; set; }
 
         public string state { get; set; }
     }

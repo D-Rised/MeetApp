@@ -91,6 +91,7 @@ namespace MeetApp.Web.Controllers
                 modelVM.DatesList = new List<Dates>();
                 modelVM.title = "Dune";
                 modelVM.userLogin = user.UserName;
+                modelVM.fixedDate = false;
                 modelVM.DatesList.Add(dates);
                 return View(modelVM);
             }
@@ -107,10 +108,27 @@ namespace MeetApp.Web.Controllers
             User user = _meetService.GetUserByLogin(login);
             if (action == "create meet")
             {
+                if (createEditDatesViewModel.fixedDate && createEditDatesViewModel.DatesList.Count > 1)
+                {
+                    ViewBag.Message = string.Format("Select only one date with fixed date parameter!");
+                    return View(createEditDatesViewModel);
+                }
+
+                foreach (var dates in createEditDatesViewModel.DatesList)
+                {
+                    if (dates.dateStart >= dates.dateEnd || dates.dateStart < DateTime.Now)
+                    {
+                        ViewBag.Message = string.Format("Incorrect date!");
+                        return View(createEditDatesViewModel);
+                    }
+                }
+
                 Meet newMeet = new Meet();
                 newMeet.Id = Guid.NewGuid();
                 newMeet.title = createEditDatesViewModel.title;
                 newMeet.datesList = createEditDatesViewModel.DatesList;
+                newMeet.fixedDate = createEditDatesViewModel.fixedDate;
+
                 foreach (var dates in newMeet.datesList.ToList())
                 {
                     dates.userId = user.Id;
@@ -122,7 +140,7 @@ namespace MeetApp.Web.Controllers
                     state = "Ready",
                     datesList = createEditDatesViewModel.DatesList
                 }};
-                newMeet.state = "Selection";
+                newMeet.state = "waiting";
 
                 _meetService.CreateNewMeet(newMeet);
 
@@ -186,9 +204,11 @@ namespace MeetApp.Web.Controllers
                 }
 
                 setupMeetViewModel.meetId = meets[id].Id;
+                setupMeetViewModel.index = id;
                 setupMeetViewModel.title = meets[id].title;
                 setupMeetViewModel.userLogin = user.UserName;
                 setupMeetViewModel.state = meets[id].state;
+                setupMeetViewModel.fixedDate = meets[id].fixedDate;
 
                 List<DatesViewModel> datesVMList = new List<DatesViewModel>();
                 foreach (var dates in meets[id].datesList)
@@ -218,12 +238,22 @@ namespace MeetApp.Web.Controllers
 
             if (decision == "update meet")
             {
+                //foreach (var dates in setupMeetViewModel.DatesList)
+                //{
+                //    if (dates.dateStart >= dates.dateEnd || dates.dateStart < DateTime.Now)
+                //    {
+                //        ViewBag.Message = string.Format("Incorrect date!");
+                //        return View(setupMeetViewModel);
+                //    }
+                //}
+
                 if (Guid.TryParse(meetId, out Guid meetIdGuid))
                 {
                     foreach (var meet in meets)
                     {
-                        if (meet.Id == meetIdGuid)
+                        if (meet.Id == meetIdGuid && meet.state == "waiting")
                         {
+                            Member ownerMember = _meetService.GetMemberByUserIdAndMeetId(user.Id, meet.Id);
                             meet.title = setupMeetViewModel.title;
                             foreach (var dates in meet.datesList.ToList())
                             {
@@ -240,6 +270,7 @@ namespace MeetApp.Web.Controllers
                                 dates.userId = user.Id;
                                 dates.dateStart = datesItem.dateStart;
                                 dates.dateEnd = datesItem.dateEnd;
+                                ownerMember.datesList.Add(dates);
                                 meet.datesList.Add(dates);
                             }
                             _meetService.SaveAll();
@@ -251,8 +282,7 @@ namespace MeetApp.Web.Controllers
                 {
                     ViewBag.Message = string.Format("Error!");
                 }
-
-                return View(setupMeetViewModel);
+                return SetupMeet(setupMeetViewModel.index);
             }
             else if (decision == "add date")
             {
@@ -288,7 +318,6 @@ namespace MeetApp.Web.Controllers
                                     if (member.userId == memberToDelete.Id)
                                     {
                                         _meetService.DeleteMember(member);
-                                        setupMeetViewModel.MembersList.RemoveAt(memberId);
                                     }
                                 }
                             }
@@ -306,7 +335,7 @@ namespace MeetApp.Web.Controllers
                 {
                     ViewBag.Message = string.Format("You cant kick owner!");
                 }
-                return View(setupMeetViewModel);
+                return SetupMeet(setupMeetViewModel.index);
             }
             else if (decision == "calculate meet")
             {
@@ -324,10 +353,7 @@ namespace MeetApp.Web.Controllers
                                 if (member.userId != user.Id && member.datesList != null)
                                 {
                                     List<Dates> memberDates = member.datesList.ToList();
-                                    //if (CrossDates(crossDates, memberDates) != null)
-                                    //{
-                                        crossDates = CrossDates(crossDates, memberDates);
-                                    //}
+                                    crossDates = CrossDates(crossDates, memberDates);
                                 }
                             }
                             if (crossDates != null)
@@ -349,10 +375,8 @@ namespace MeetApp.Web.Controllers
                                 meet.state = "not match";
                             }
 
-                            setupMeetViewModel.state = meet.state;
-
                             _meetService.SaveAll();
-                            ViewBag.Message = string.Format("Meet successfully calculated!");
+                            ViewBag.Message = string.Format("Meet successfully calculated and launched!");
                         }
                     }
                 }
@@ -361,7 +385,41 @@ namespace MeetApp.Web.Controllers
                     ViewBag.Message = string.Format("Error!");
                 }
 
-                return View(setupMeetViewModel);
+                return SetupMeet(setupMeetViewModel.index);
+            }
+            else if (decision == "launch meet")
+            {
+                if (Guid.TryParse(meetId, out Guid meetIdGuid))
+                {
+                    foreach (var meet in meets)
+                    {
+                        if (meet.Id == meetIdGuid && meet.fixedDate)
+                        {
+                            Member ownerMember = _meetService.GetMemberByUserIdAndMeetId(user.Id, meet.Id);
+
+                            Dates finalDate = new Dates();
+                            finalDate.meetId = meet.Id;
+                            finalDate.userId = user.Id;
+                            finalDate.dateStart = meet.datesList[0].dateStart;
+                            finalDate.dateEnd = meet.datesList[0].dateEnd;
+
+                            ownerMember.datesList.Clear();
+                            ownerMember.datesList.Add(finalDate);
+                            meet.datesList.Clear();
+                            meet.datesList.Add(finalDate);
+                            meet.state = "launched";
+
+                            _meetService.SaveAll();
+                            ViewBag.Message = string.Format("Meet successfully launched!");
+                        }
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = string.Format("Error!");
+                }
+
+                return SetupMeet(setupMeetViewModel.index);
             }
             else if (decision == "delete meet")
             {
@@ -425,6 +483,7 @@ namespace MeetApp.Web.Controllers
                 List<User> users = _meetService.GetAllUsers();
                 List<MemberViewModel> memberVMList = new List<MemberViewModel>();
                 SetupMeetViewModel setupMeetViewModel = new SetupMeetViewModel();
+                setupMeetViewModel.index = id;
                 foreach (var memberItem in meets[id].membersList)
                 {
                     MemberViewModel memberVM = new MemberViewModel();
@@ -485,6 +544,14 @@ namespace MeetApp.Web.Controllers
             {
                 if (Guid.TryParse(meetId, out Guid meetIdGuid))
                 {
+                    foreach (var dates in setupMeetViewModel.DatesList)
+                    {
+                        if (dates.dateStart >= dates.dateEnd || dates.dateStart < DateTime.Now)
+                        {
+                            ViewBag.Message = string.Format("Incorrect date!");
+                            return View(setupMeetViewModel);
+                        }
+                    }
                     foreach (var meet in meets)
                     {
                         if (meet.Id == meetIdGuid)
@@ -524,6 +591,7 @@ namespace MeetApp.Web.Controllers
                                     member.state = "Ready";
                                     _meetService.SaveAll();
                                     ViewBag.Message = string.Format("You select your dates successfully!");
+                                    return OpenMeet(setupMeetViewModel.index);
                                 }
                             }
                         }
@@ -570,6 +638,7 @@ namespace MeetApp.Web.Controllers
     {
         public string title { get; set; }
         public string userLogin { get; set; }
+        public bool fixedDate { get; set; }
         public IList<Dates> DatesList { get; set; }
     }
     public class SetupMeetViewModel
@@ -579,6 +648,8 @@ namespace MeetApp.Web.Controllers
         public string userLogin { get; set; }
         public string state { get; set; }
         public string memberState { get; set; }
+        public bool fixedDate { get; set; }
+        public int index { get; set; }
         public IList<DatesViewModel> DatesList { get; set; }
         public IList<MemberViewModel> MembersList { get; set; }
     }

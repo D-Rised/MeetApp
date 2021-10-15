@@ -17,13 +17,6 @@ namespace MeetApp.Web.Controllers
 {
     public class AuthController : Controller
     {
-        //private readonly AuthService _authService;
-
-        //public AuthController(AuthService authService)
-        //{
-        //    _authService = authService;
-        //}
-
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
@@ -49,7 +42,6 @@ namespace MeetApp.Web.Controllers
         {
             if (action == "login")
             {
-                //User user = _authService.GetUserByLogin(_login);
                 var user = await _userManager.FindByNameAsync(_login);
                 if (user == null)
                 {
@@ -68,17 +60,6 @@ namespace MeetApp.Web.Controllers
                     ViewBag.Message = string.Format("Login or password invalid!");
                     return View();
                 }
-
-                //if (_signInManager.Sign == _password)
-                //{
-                //    await Authenticate(user);
-                //    return RedirectToAction("MainMenu", "Meet");
-                //}
-                //else
-                //{
-                //    ViewBag.Message = string.Format("Login or password invalid!");
-                //}
-
             }
             else if (action == "register")
             {
@@ -98,39 +79,14 @@ namespace MeetApp.Web.Controllers
                 {
                     await _signInManager.SignInAsync(newUser, false);
                     return RedirectToAction("MainMenu", "Meet");
-                    //await _userManager.AddClaimAsync(newUser, new Claim(ClaimTypes.Name, _login));
                 }
                 else
                 {
                     ViewBag.Message = string.Format(result.ToString());
                 }
-
-                //User user = _authService.GetUserByLogin(_login);
-                //if (user == null)
-                //{
-                //    user = new User() { Id = Guid.NewGuid(), login = _login, password = _password };
-                //    _authService.CreateNewUser(user);
-                //}
-                //else
-                //{
-                //    ViewBag.Message = string.Format("User already exist!");
-                //}
             }
             return View();
         }
-
-        //private async Task Authenticate(User user)
-        //{
-        //    var claims = new List<Claim>
-        //    {
-        //        new Claim(ClaimsIdentity.DefaultNameClaimType, user.UserName)
-        //    };
-
-        //    ClaimsIdentity id = new ClaimsIdentity(claims, "Cookie");
-
-        //    await HttpContext.SignInAsync("Cookie", new ClaimsPrincipal(id));
-        //}
-
         public IActionResult LogOut()
         {
             _signInManager.SignOutAsync();

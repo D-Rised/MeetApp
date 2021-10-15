@@ -28,6 +28,11 @@ namespace MeetApp.DAL.Repositories
             return meets;
         }
 
+        public IQueryable<Dates> GetAllDates()
+        {
+            return _context.Dates;
+        }
+
         public IQueryable<T> Get<T>() where T : class
         {
             return _context.Set<T>().AsQueryable();
@@ -56,6 +61,14 @@ namespace MeetApp.DAL.Repositories
         }
         public void DeleteMember(Member entity)
         {
+            List<Dates> allDates = _context.Dates.ToList();
+            for (int i = 0; i < allDates.Count; i++)
+            {
+                if (allDates[i].userId == entity.userId)
+                {
+                    _context.Dates.Remove(allDates[i]);
+                }
+            }
             _context.Members.Remove(entity);
             _context.SaveChanges();
         }

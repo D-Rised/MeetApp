@@ -33,7 +33,6 @@ namespace MeetApp
             services.AddAuthorization();
 
             services.AddTransient<DbRepository>();
-            services.AddTransient<AuthService>();
             services.AddTransient<MeetService>();
 
             services.AddControllersWithViews();

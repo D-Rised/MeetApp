@@ -25,7 +25,7 @@ namespace MeetApp.Web.Services
         }
         public User GetUserByLogin(string login)
         {
-            return _usersRepository.Get<User>().FirstOrDefault(x => x.login == login);
+            return _usersRepository.Get<User>().FirstOrDefault(x => x.UserName == login);
         }
         public void CreateNewUser(User user)
         {

@@ -34,7 +34,7 @@ namespace MeetApp.Web.Controllers
                 MainMenuViewModel modelVM = new MainMenuViewModel();
                 modelVM.ownedMeets = _meetService.GetAllOwnedMeetsForUser(user);
                 modelVM.memberMeets = _meetService.GetAllMemberMeetsForUser(user);
-                modelVM.userLogin = user.login;
+                modelVM.userLogin = user.UserName;
                 return View(modelVM);
             }
             else
@@ -90,7 +90,7 @@ namespace MeetApp.Web.Controllers
                 };
                 modelVM.DatesList = new List<Dates>();
                 modelVM.title = "Dune";
-                modelVM.userLogin = user.login;
+                modelVM.userLogin = user.UserName;
                 modelVM.DatesList.Add(dates);
                 return View(modelVM);
             }
@@ -166,7 +166,7 @@ namespace MeetApp.Web.Controllers
                 foreach (var memberItem in meets[id].membersList)
                 {
                     MemberViewModel memberVM = new MemberViewModel();
-                    memberVM.login = _meetService.GetUserById(memberItem.userId).login;
+                    memberVM.login = _meetService.GetUserById(memberItem.userId).UserName;
                     memberVM.role = memberItem.role;
                     memberVM.state = memberItem.state;
                     memberVMList.Add(memberVM);
@@ -187,7 +187,7 @@ namespace MeetApp.Web.Controllers
 
                 setupMeetViewModel.meetId = meets[id].Id;
                 setupMeetViewModel.title = meets[id].title;
-                setupMeetViewModel.userLogin = user.login;
+                setupMeetViewModel.userLogin = user.UserName;
                 setupMeetViewModel.state = meets[id].state;
 
                 List<DatesViewModel> datesVMList = new List<DatesViewModel>();
@@ -199,7 +199,7 @@ namespace MeetApp.Web.Controllers
                     datesVM.memberId = dates.userId;
                     datesVM.dateStart = dates.dateStart;
                     datesVM.dateEnd = dates.dateEnd;
-                    datesVM.memberLogin = _meetService.GetUserById(dates.userId).login;
+                    datesVM.memberLogin = _meetService.GetUserById(dates.userId).UserName;
                     datesVMList.Add(datesVM);
                 }
                 setupMeetViewModel.DatesList = datesVMList;
@@ -324,26 +324,32 @@ namespace MeetApp.Web.Controllers
                                 if (member.userId != user.Id && member.datesList != null)
                                 {
                                     List<Dates> memberDates = member.datesList.ToList();
-                                    if (CrossDates(crossDates, memberDates) != null)
-                                    {
+                                    //if (CrossDates(crossDates, memberDates) != null)
+                                    //{
                                         crossDates = CrossDates(crossDates, memberDates);
-                                    }
+                                    //}
                                 }
                             }
+                            if (crossDates != null)
+                            {
+                                Dates finalDate = new Dates();
+                                finalDate.meetId = meet.Id;
+                                finalDate.userId = user.Id;
+                                finalDate.dateStart = crossDates[0].dateStart;
+                                finalDate.dateEnd = crossDates[0].dateEnd;
 
-                            Dates finalDate = new Dates();
-                            finalDate.meetId = meet.Id;
-                            finalDate.userId = user.Id;
-                            finalDate.dateStart = crossDates[0].dateStart;
-                            finalDate.dateEnd = crossDates[0].dateEnd;
-                            ownerMember.datesList.Clear();
-                            ownerMember.datesList.Add(finalDate);
-                            meet.datesList.Clear();
-                            meet.datesList.Add(finalDate);
-                            meet.state = "launched";
+                                ownerMember.datesList.Clear();
+                                ownerMember.datesList.Add(finalDate);
+                                meet.datesList.Clear();
+                                meet.datesList.Add(finalDate);
+                                meet.state = "launched";
+                            }
+                            else
+                            {
+                                meet.state = "not match";
+                            }
+
                             setupMeetViewModel.state = meet.state;
-                            Debug.WriteLine("Final date start: " + crossDates[0].dateStart);
-                            Debug.WriteLine("Final date end: " + crossDates[0].dateEnd);
 
                             _meetService.SaveAll();
                             ViewBag.Message = string.Format("Meet successfully calculated!");
@@ -422,7 +428,7 @@ namespace MeetApp.Web.Controllers
                 foreach (var memberItem in meets[id].membersList)
                 {
                     MemberViewModel memberVM = new MemberViewModel();
-                    memberVM.login = _meetService.GetUserById(memberItem.userId).login;
+                    memberVM.login = _meetService.GetUserById(memberItem.userId).UserName;
                     memberVM.role = memberItem.role;
                     memberVM.state = memberItem.state;
                     memberVMList.Add(memberVM);
@@ -445,7 +451,7 @@ namespace MeetApp.Web.Controllers
 
                 setupMeetViewModel.meetId = meets[id].Id;
                 setupMeetViewModel.title = meets[id].title;
-                setupMeetViewModel.userLogin = user.login;
+                setupMeetViewModel.userLogin = user.UserName;
                 setupMeetViewModel.state = meets[id].state;
 
                 List<DatesViewModel> datesVMList = new List<DatesViewModel>();
@@ -457,7 +463,7 @@ namespace MeetApp.Web.Controllers
                     datesVM.memberId = dates.userId;
                     datesVM.dateStart = dates.dateStart;
                     datesVM.dateEnd = dates.dateEnd;
-                    datesVM.memberLogin = _meetService.GetUserById(dates.userId).login;
+                    datesVM.memberLogin = _meetService.GetUserById(dates.userId).UserName;
                     datesVMList.Add(datesVM);
                 }
 
@@ -509,7 +515,7 @@ namespace MeetApp.Web.Controllers
                                     }
                                     foreach (var memberVM in setupMeetViewModel.MembersList)
                                     {
-                                        if (memberVM.login == user.login)
+                                        if (memberVM.login == user.UserName)
                                         {
                                             memberVM.state = "Ready";
                                         }

@@ -11,16 +11,25 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace MeetApp.Web.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly AuthService _authService;
+        //private readonly AuthService _authService;
 
-        public AuthController(AuthService authService)
+        //public AuthController(AuthService authService)
+        //{
+        //    _authService = authService;
+        //}
+
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
-            _authService = authService;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         public IActionResult SignIn()
@@ -40,55 +49,91 @@ namespace MeetApp.Web.Controllers
         {
             if (action == "login")
             {
-                User user = _authService.GetUserByLogin(_login);
-                if (user != null)
+                //User user = _authService.GetUserByLogin(_login);
+                var user = await _userManager.FindByNameAsync(_login);
+                if (user == null)
                 {
-                    if (user.password == _password)
-                    {
-                        await Authenticate(user);
-                        return RedirectToAction("MainMenu", "Meet");
-                    }
-                    else
-                    {
-                        ViewBag.Message = string.Format("Login or password invalid!");
-                    }
+                    ViewBag.Message = string.Format("User not found!");
+                    return View();
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(user, _password, false, false);
+
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("MainMenu", "Meet");
                 }
                 else
                 {
-                    ViewBag.Message = string.Format("User not found!");
+                    ViewBag.Message = string.Format("Login or password invalid!");
+                    return View();
                 }
+
+                //if (_signInManager.Sign == _password)
+                //{
+                //    await Authenticate(user);
+                //    return RedirectToAction("MainMenu", "Meet");
+                //}
+                //else
+                //{
+                //    ViewBag.Message = string.Format("Login or password invalid!");
+                //}
+
             }
             else if (action == "register")
             {
-                User user = _authService.GetUserByLogin(_login);
-                if (user == null)
+                var user = await _userManager.FindByNameAsync(_login);
+                if (user != null)
                 {
-                    user = new User() { Id = Guid.NewGuid(), login = _login, password = _password };
-                    _authService.CreateNewUser(user);
+                    ViewBag.Message = string.Format("User already exist!");
+                    return View();
+                }
+
+                User newUser = new User();
+                newUser.UserName = _login;
+                var result = await _userManager.CreateAsync(newUser, _password);
+                Debug.WriteLine(result.Succeeded);
+                Debug.WriteLine(result);
+                if (result.Succeeded)
+                {
+                    await _signInManager.SignInAsync(newUser, false);
+                    return RedirectToAction("MainMenu", "Meet");
+                    //await _userManager.AddClaimAsync(newUser, new Claim(ClaimTypes.Name, _login));
                 }
                 else
                 {
-                    ViewBag.Message = string.Format("User already exist!");
+                    ViewBag.Message = string.Format(result.ToString());
                 }
+
+                //User user = _authService.GetUserByLogin(_login);
+                //if (user == null)
+                //{
+                //    user = new User() { Id = Guid.NewGuid(), login = _login, password = _password };
+                //    _authService.CreateNewUser(user);
+                //}
+                //else
+                //{
+                //    ViewBag.Message = string.Format("User already exist!");
+                //}
             }
             return View();
         }
 
-        private async Task Authenticate(User user)
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.login)
-            };
+        //private async Task Authenticate(User user)
+        //{
+        //    var claims = new List<Claim>
+        //    {
+        //        new Claim(ClaimsIdentity.DefaultNameClaimType, user.UserName)
+        //    };
 
-            ClaimsIdentity id = new ClaimsIdentity(claims, "Cookie");
+        //    ClaimsIdentity id = new ClaimsIdentity(claims, "Cookie");
 
-            await HttpContext.SignInAsync("Cookie", new ClaimsPrincipal(id));
-        }
+        //    await HttpContext.SignInAsync("Cookie", new ClaimsPrincipal(id));
+        //}
 
         public IActionResult LogOut()
         {
-            HttpContext.SignOutAsync("Cookie");
+            _signInManager.SignOutAsync();
             return RedirectToAction("SignIn", "Auth");
         }
     }

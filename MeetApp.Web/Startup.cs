@@ -1,4 +1,5 @@
 using MeetApp.DAL;
+using MeetApp.DAL.Models;
 using MeetApp.DAL.Repositories;
 using MeetApp.Web.Services;
 using Microsoft.AspNetCore.Builder;
@@ -23,11 +24,11 @@ namespace MeetApp
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication("Cookie")
-                .AddCookie("Cookie", options =>
-                {
-                    options.LoginPath = "/Auth/SignIn";
-                });
+            //services.AddAuthentication("Cookie")
+            //    .AddCookie("Cookie", options =>
+            //    {
+            //        options.LoginPath = "/Auth/SignIn";
+            //    });
 
             services.AddAuthorization();
 
@@ -40,16 +41,26 @@ namespace MeetApp
             services.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-            });
+            })
+                .AddIdentity<User, Role>(config =>
+                {
+                    config.Password.RequireDigit = false;
+                    config.Password.RequireLowercase = false;
+                    config.Password.RequireUppercase = false;
+                    config.Password.RequireNonAlphanumeric = false;
+                    config.Password.RequiredLength = 6;
+                })
+                .AddEntityFrameworkStores<DataContext>();
 
-            services.Configure<IdentityOptions>(options =>
-            {
-                options.Password.RequiredLength = 6;
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            });
+            //services.Configure<IdentityOptions>(options =>
+            //{
+            //    options.Password.RequiredLength = 6;
+            //    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            //});
 
             services.ConfigureApplicationCookie(options =>
             {
+                options.LoginPath = "/Auth/SignIn";
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
             });

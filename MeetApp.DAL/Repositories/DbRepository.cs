@@ -19,7 +19,7 @@ namespace MeetApp.DAL.Repositories
 
         public IQueryable<User> GetAllUsers()
         {
-            return _context.Users.OrderBy(x => x.login);
+            return _context.Users;
         }
 
         public IQueryable<Meet> GetAllMeets()

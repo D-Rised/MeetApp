@@ -66,10 +66,6 @@ namespace MeetApp.Web.Services
             return memberMeets;
         }
        
-        public void CreateNewUser(User user)
-        {
-            _DbRepository.Add(user);
-        }
         public void CreateNewMeet(Meet meet)
         {
             _DbRepository.Add(meet);

@@ -24,12 +24,6 @@ namespace MeetApp
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddAuthentication("Cookie")
-            //    .AddCookie("Cookie", options =>
-            //    {
-            //        options.LoginPath = "/Auth/SignIn";
-            //    });
-
             services.AddAuthorization();
 
             services.AddTransient<DbRepository>();
@@ -50,12 +44,6 @@ namespace MeetApp
                     config.Password.RequiredLength = 6;
                 })
                 .AddEntityFrameworkStores<DataContext>();
-
-            //services.Configure<IdentityOptions>(options =>
-            //{
-            //    options.Password.RequiredLength = 6;
-            //    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            //});
 
             services.ConfigureApplicationCookie(options =>
             {

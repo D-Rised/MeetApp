@@ -447,25 +447,25 @@ namespace MeetApp.Web.Controllers
             }
         }
 
-        public List<Dates> CrossDates(List<Dates> d1, List<Dates> d2)
+        public List<Dates> CrossDates(List<Dates> crossDates, List<Dates> memberDates)
         {
-            List<Dates> crossDates = new List<Dates>();
+            List<Dates> newCrossDates = new List<Dates>();
 
-            for (int i = 0; i < d1.Count; i++)
+            for (int i = 0; i < crossDates.Count; i++)
             {
-                for (int j = 0; j < d2.Count; j++)
+                for (int j = 0; j < memberDates.Count; j++)
                 {
                     Dates crossDate = new Dates();
 
-                    var crossDateStart = d1[i].dateStart < d2[j].dateStart ? d2[j].dateStart : d1[i].dateStart;
-                    var crossDateEnd = d1[i].dateEnd < d2[j].dateEnd ? d1[i].dateEnd : d2[j].dateEnd;
+                    var crossDateStart = crossDates[i].dateStart < memberDates[j].dateStart ? memberDates[j].dateStart : crossDates[i].dateStart;
+                    var crossDateEnd = crossDates[i].dateEnd < memberDates[j].dateEnd ? crossDates[i].dateEnd : memberDates[j].dateEnd;
                     if (crossDateStart < crossDateEnd)
                     {
-                        crossDate.meetId = d1[i].meetId;
+                        crossDate.meetId = crossDates[i].meetId;
                         crossDate.dateStart = crossDateStart;
                         crossDate.dateEnd = crossDateEnd;
-                        crossDates.Add(crossDate);
-                        return crossDates;
+                        newCrossDates.Add(crossDate);
+                        return newCrossDates;
                     }
                 }
             }

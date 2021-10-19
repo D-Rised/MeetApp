@@ -8,106 +8,136 @@ namespace MeetApp.Web.Services
 {
     public class MeetService
     {
-        private readonly DbRepository _DbRepository;
+        private readonly MeetRepository _meetRepository;
 
-        public MeetService(DbRepository DbRepository)
+        public MeetService(MeetRepository meetRepository)
         {
-            _DbRepository = DbRepository;
+            _meetRepository = meetRepository;
         }
         public List<User> GetAllUsers()
         {
-            return _DbRepository.GetAllUsers().ToList();
+            return _meetRepository.GetAllUsers().ToList();
         }
         public User GetUserByLogin(string login)
         {
-            return _DbRepository.Get<User>().FirstOrDefault(x => x.UserName == login);
+            return _meetRepository.Get<User>().FirstOrDefault(x => x.UserName == login);
         }
         public User GetUserById(Guid Id)
         {
-            return _DbRepository.Get<User>().FirstOrDefault(x => x.Id == Id);
+            return _meetRepository.Get<User>().FirstOrDefault(x => x.Id == Id);
         }
         public Member GetMemberByUserIdAndMeetId(Guid userId, Guid meetId)
         {
-            return _DbRepository.Get<Member>().FirstOrDefault(x => x.userId == userId && x.meetId == meetId);
+            return _meetRepository.Get<Member>().FirstOrDefault(x => x.userId == userId && x.meetId == meetId);
         }
 
         public List<Meet> GetAllOwnedMeetsForUser(User user)
         {
-            List<Meet> meets = _DbRepository.GetAllMeets().ToList();
-            List<Meet> ownedMeets = new List<Meet>();
-            foreach (var meet in meets)
+            if (user != null)
             {
-                for (int i = 0; i < meet.membersList.Count; i++)
+                List<Meet> meets = _meetRepository.GetAllMeets().ToList();
+                List<Meet> ownedMeets = new List<Meet>();
+                foreach (var meet in meets)
                 {
-                    if (meet.membersList[i].userId == user.Id && meet.membersList[i].role == "owner")
+                    for (int i = 0; i < meet.membersList.Count; i++)
                     {
-                        ownedMeets.Add(meet);
+                        if (meet.membersList[i].userId == user.Id && meet.membersList[i].role == "owner")
+                        {
+                            ownedMeets.Add(meet);
+                        }
+
                     }
-                    
                 }
+                return ownedMeets;
             }
-            return ownedMeets;
+            else
+            {
+                return null;
+            }
         }
         public List<Meet> GetAllMemberMeetsForUser(User user)
         {
-            List<Meet> meets = _DbRepository.GetAllMeets().ToList();
-            List<Meet> memberMeets = new List<Meet>();
-            foreach (var meet in meets)
+            if (user != null)
             {
-                for (int i = 0; i < meet.membersList.Count; i++)
+                List<Meet> meets = _meetRepository.GetAllMeets().ToList();
+                List<Meet> memberMeets = new List<Meet>();
+                foreach (var meet in meets)
                 {
-                    if (meet.membersList[i].userId == user.Id && meet.membersList[i].role == "member")
+                    for (int i = 0; i < meet.membersList.Count; i++)
                     {
-                        memberMeets.Add(meet);
-                    }
+                        if (meet.membersList[i].userId == user.Id && meet.membersList[i].role == "member")
+                        {
+                            memberMeets.Add(meet);
+                        }
 
+                    }
                 }
+                return memberMeets;
             }
-            return memberMeets;
+            else
+            {
+                return null;
+            }
         }
        
         public void CreateNewMeet(Meet meet)
         {
-            _DbRepository.Add(meet);
+            if (meet != null)
+            {
+                _meetRepository.Add(meet);
+            }
         }
         
         public string JoinMeet(User user, Guid meetId)
         {
-            List<Meet> meets = _DbRepository.GetAllMeets().ToList();
-            foreach (var meet in meets)
+            if (user != null)
             {
-                if (meet.Id == meetId)
+                List<Meet> meets = _meetRepository.GetAllMeets().ToList();
+                foreach (var meet in meets)
                 {
-                    for (int i = 0; i < meet.membersList.Count; i++)
+                    if (meet.Id == meetId)
                     {
-                        if (meet.membersList[i].userId == user.Id)
+                        for (int i = 0; i < meet.membersList.Count; i++)
                         {
-                            return "user already exist";
+                            if (meet.membersList[i].userId == user.Id)
+                            {
+                                return "user already exist";
+                            }
                         }
+                        Member member = new Member();
+                        member.userId = user.Id;
+                        member.meetId = meet.Id;
+                        member.role = "member";
+                        member.state = "Not ready";
+                        _meetRepository.Add(member);
+                        return "joined";
                     }
-                    Member member = new Member();
-                    member.userId = user.Id;
-                    member.meetId = meet.Id;
-                    member.role = "member";
-                    member.state = "Not ready";
-                    _DbRepository.Add(member);
-                    return "joined";
                 }
+                return "no found";
             }
-            return "no found";
+            else
+            {
+                return null;
+            }
         }
 
         public void SaveAll()
         {
-            _DbRepository.SaveAll();
+            _meetRepository.SaveAll();
         }
         public void DeleteMember(Member member)
         {
-            _DbRepository.DeleteMember(member);
+            if (member != null)
+            {
+                _meetRepository.DeleteMember(member);
+            }
         }
         public void DeleteMeet(Meet meet)
         {
-            _DbRepository.DeleteMeet(meet);
+            if (meet != null)
+            {
+                _meetRepository.DeleteMeet(meet);
+            }
         }
     }
 }

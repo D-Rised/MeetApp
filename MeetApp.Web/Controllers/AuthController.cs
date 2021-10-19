@@ -25,6 +25,7 @@ namespace MeetApp.Web.Controllers
             _signInManager = signInManager;
         }
 
+        [HttpGet]
         public IActionResult SignIn()
         {
             if (User.Identity.IsAuthenticated)
@@ -38,18 +39,18 @@ namespace MeetApp.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SignIn(string _login, string _password, string action)
+        public async Task<IActionResult> SignIn(string login, string password, string action)
         {
-            if (action == "login")
+            if (action == "login" && login != null && password != null)
             {
-                var user = await _userManager.FindByNameAsync(_login);
+                var user = await _userManager.FindByNameAsync(login);
                 if (user == null)
                 {
                     ViewBag.Message = string.Format("User not found!");
                     return View();
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(user, _password, false, false);
+                var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
 
                 if (result.Succeeded)
                 {
@@ -63,7 +64,7 @@ namespace MeetApp.Web.Controllers
             }
             else if (action == "register")
             {
-                var user = await _userManager.FindByNameAsync(_login);
+                var user = await _userManager.FindByNameAsync(login);
                 if (user != null)
                 {
                     ViewBag.Message = string.Format("User already exist!");
@@ -71,8 +72,8 @@ namespace MeetApp.Web.Controllers
                 }
 
                 User newUser = new User();
-                newUser.UserName = _login;
-                var result = await _userManager.CreateAsync(newUser, _password);
+                newUser.UserName = login;
+                var result = await _userManager.CreateAsync(newUser, password);
                 Debug.WriteLine(result.Succeeded);
                 Debug.WriteLine(result);
                 if (result.Succeeded)

@@ -8,11 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeetApp.DAL.Repositories
 {
-    public class DbRepository
+    public class MeetRepository
     {
         private readonly DataContext _context;
         
-        public DbRepository(DataContext context)
+        public MeetRepository(DataContext context)
         {
             _context = context;
         }

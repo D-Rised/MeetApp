@@ -26,7 +26,7 @@ namespace MeetApp
         {
             services.AddAuthorization();
 
-            services.AddTransient<DbRepository>();
+            services.AddTransient<MeetRepository>();
             services.AddTransient<MeetService>();
 
             services.AddControllersWithViews();

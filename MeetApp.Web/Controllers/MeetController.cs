@@ -1,4 +1,5 @@
 ﻿using MeetApp.DAL.Models;
+using MeetApp.Models;
 using MeetApp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -100,7 +101,7 @@ namespace MeetApp.Web.Controllers
                     dateEnd = DateTime.Now.AddHours(1),
                 };
                 modelVM.DatesList = new List<Dates>();
-                modelVM.title = "Dune";
+                modelVM.title = "Dune the board game";
                 modelVM.userLogin = user.UserName;
                 modelVM.fixedDate = false;
                 modelVM.DatesList.Add(dates);
@@ -596,49 +597,5 @@ namespace MeetApp.Web.Controllers
                 return RedirectToAction("MainMenu", "Meet");
             }
         }
-    }
-
-    public class MainMenuViewModel
-    {
-        public string userLogin { get; set; }
-        public IList<Meet> ownedMeets { get; set; }
-        public IList<Meet> memberMeets { get; set; }
-        public string alertMessage { get; set; }
-    }
-    public class CreateMeetViewModel
-    {
-        public string title { get; set; }
-        public string userLogin { get; set; }
-        public bool fixedDate { get; set; }
-        public IList<Dates> DatesList { get; set; }
-        public string alertMessage { get; set; }
-    }
-    public class SetupMeetViewModel
-    {
-        public Guid meetId { get; set; }
-        public string title { get; set; }
-        public string userLogin { get; set; }
-        public string state { get; set; }
-        public string memberState { get; set; }
-        public bool fixedDate { get; set; }
-        public int index { get; set; }
-        public IList<DatesViewModel> DatesList { get; set; }
-        public IList<MemberViewModel> MembersList { get; set; }
-        public string alertMessage { get; set; }
-    }
-    public class MemberViewModel
-    {
-        public string login { get; set; }
-        public string role { get; set; }
-        public string state { get; set; }
-    }
-    public class DatesViewModel
-    {
-        public int Id { get; set; }
-        public Guid meetId { get; set; }
-        public Guid memberId { get; set; }
-        public DateTime dateStart { get; set; }
-        public DateTime dateEnd { get; set; }
-        public string memberLogin { get; set; }
     }
 }

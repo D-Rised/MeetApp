@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using MeetApp.Models;
 
 namespace MeetApp.Web.Controllers
 {
@@ -94,9 +95,5 @@ namespace MeetApp.Web.Controllers
             _signInManager.SignOutAsync();
             return RedirectToAction("SignIn", "Auth");
         }
-    }
-    public class AuthViewModel
-    {
-        public string alertMessage { get; set; }
     }
 }

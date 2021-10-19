@@ -24,7 +24,7 @@ namespace MeetApp.DAL.Repositories
 
         public IQueryable<Meet> GetAllMeets()
         {
-            var meets = _context.Meets.Include(x => x.datesList).Include(x => x.membersList);
+            var meets = _context.Meets.Include(x => x.DatesList).Include(x => x.MembersList);
             return meets;
         }
 
@@ -60,7 +60,7 @@ namespace MeetApp.DAL.Repositories
             List<Dates> allDates = _context.Dates.ToList();
             for (int i = 0; i < allDates.Count; i++)
             {
-                if (allDates[i].userId == entity.userId)
+                if (allDates[i].UserId == entity.UserId)
                 {
                     _context.Dates.Remove(allDates[i]);
                 }

@@ -8,10 +8,10 @@ namespace MeetApp.DAL.Models
     public class Member
     {
         public int Id { get; set; }
-        public Guid userId { get; set; }
-        public Guid meetId { get; set; }
-        public string role { get; set; }
-        public string state { get; set; }
-        public IList<Dates> datesList { get; set; }
+        public Guid UserId { get; set; }
+        public Guid MeetId { get; set; }
+        public string Role { get; set; }
+        public string State { get; set; }
+        public IList<Dates> DatesList { get; set; }
     }
 }

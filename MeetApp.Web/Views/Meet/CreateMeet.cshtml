@@ -27,7 +27,7 @@
             <div class="row">
                 <div class="form-group">
                     <label>Meet name:</label>
-                    <input asp-for="@Model.title" type="text" class="form-control" value="@Model.title" />
+                    <input asp-for="@Model.Title" type="text" class="form-control" value="@Model.Title" />
                 </div>
             </div>
 
@@ -36,7 +36,7 @@
             <div class="row">
                 <div class="form-group">
                     <label>Fixed date: </label>
-                    <input type="checkbox" asp-for="@Model.fixedDate" class="form-group" id="fixedDateCheckbox" />
+                    <input type="checkbox" asp-for="@Model.FixedDate" class="form-group" id="fixedDateCheckbox" />
                     <label></label>
                 </div>
             </div>
@@ -57,13 +57,13 @@
                             <tr>
                                 <td class="col-sm-4">
                                     <div class='input-group date'>
-                                        <input asp-for="@Model.DatesList[i].dateStart" type="datetime" class="form-control" value="@Model.DatesList[i].dateStart" />
+                                        <input asp-for="@Model.DatesList[i].DateStart" type="datetime" class="form-control" value="@Model.DatesList[i].DateStart" />
                                         <span class="input-group-text bi bi-calendar2"></span>
                                     </div>
                                 </td>
                                 <td class="col-sm-4">
                                     <div class='input-group date'>
-                                        <input asp-for="@Model.DatesList[i].dateEnd" type="datetime" class="form-control" value="@Model.DatesList[i].dateEnd" />
+                                        <input asp-for="@Model.DatesList[i].DateEnd" type="datetime" class="form-control" value="@Model.DatesList[i].DateEnd" />
                                         <span class="input-group-text bi bi-calendar2"></span>
                                     </div>
                                 </td>
@@ -107,11 +107,11 @@
             </div>
         }
     </div>
-    @if (Model.alertMessage != null)
+    @if (Model.AlertMessage != null)
     {
         <script type="text/javascript">
             window.onload = function () {
-                alert("@Model.alertMessage");
+                alert("@Model.AlertMessage");
             };
         </script>
     }

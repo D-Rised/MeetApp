@@ -6,9 +6,9 @@ namespace MeetApp.Models
 {
     public class MainMenuViewModel
     {
-        public string userLogin { get; set; }
-        public IList<Meet> ownedMeets { get; set; }
-        public IList<Meet> memberMeets { get; set; }
-        public string alertMessage { get; set; }
+        public string UserLogin { get; set; }
+        public IList<Meet> OwnedMeets { get; set; }
+        public IList<Meet> MemberMeets { get; set; }
+        public string AlertMessage { get; set; }
     }
 }

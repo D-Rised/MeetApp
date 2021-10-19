@@ -9,9 +9,9 @@ namespace MeetApp.DAL.Models
     public class Dates
     {
         public int Id { get; set; }
-        public Guid meetId { get; set; }
-        public Guid userId { get; set; }
-        public DateTime dateStart { get; set; }
-        public DateTime dateEnd { get; set; }
+        public Guid MeetId { get; set; }
+        public Guid UserId { get; set; }
+        public DateTime DateStart { get; set; }
+        public DateTime DateEnd { get; set; }
     }
 }

@@ -5,15 +5,15 @@ namespace MeetApp.Models
 {
     public class SetupMeetViewModel
     {
-        public Guid meetId { get; set; }
-        public string title { get; set; }
-        public string userLogin { get; set; }
-        public string state { get; set; }
-        public string memberState { get; set; }
-        public bool fixedDate { get; set; }
-        public int index { get; set; }
+        public Guid MeetId { get; set; }
+        public string Title { get; set; }
+        public string UserLogin { get; set; }
+        public string State { get; set; }
+        public string MemberState { get; set; }
+        public bool FixedDate { get; set; }
+        public int Index { get; set; }
         public IList<DatesViewModel> DatesList { get; set; }
         public IList<MemberViewModel> MembersList { get; set; }
-        public string alertMessage { get; set; }
+        public string AlertMessage { get; set; }
     }
 }

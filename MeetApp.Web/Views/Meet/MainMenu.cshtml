@@ -42,14 +42,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (int i = 0; i < Model.ownedMeets.Count; i++)
+                    @for (int i = 0; i < Model.OwnedMeets.Count; i++)
                     {
                         <tr>
                             <td class="col-sm-4">
-                                <p>@Model.ownedMeets[i].title</p>
+                                <p>@Model.OwnedMeets[i].Title</p>
                             </td>
                             <td class="col-sm-4">
-                                <p>@Model.ownedMeets[i].state</p>
+                                <p>@Model.OwnedMeets[i].State</p>
                             </td>
                             <td class="col-sm-2">
                                 <a class="btn btn-light" asp-controller="Meet" asp-action="SetupMeet" asp-route-id="@i">Setup</a>
@@ -72,14 +72,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (int i = 0; i < Model.memberMeets.Count; i++)
+                    @for (int i = 0; i < Model.MemberMeets.Count; i++)
                     {
                         <tr>
                             <td class="col-sm-4">
-                                <p>@Model.memberMeets[i].title</p>
+                                <p>@Model.MemberMeets[i].Title</p>
                             </td>
                             <td class="col-sm-4">
-                                <p>@Model.memberMeets[i].state</p>
+                                <p>@Model.MemberMeets[i].State</p>
                             </td>
                             <td class="col-sm-2">
                                 <a class="btn btn-light" asp-controller="Meet" asp-action="OpenMeet" asp-route-id="@i">Open</a>
@@ -92,11 +92,11 @@
     </div>
     <div class="col-4"></div>
 
-    @if (Model.alertMessage != null)
+    @if (Model.AlertMessage != null)
     {
         <script type="text/javascript">
             window.onload = function () {
-                alert("@Model.alertMessage");
+                alert("@Model.AlertMessage");
             };
         </script>
     }

@@ -4,8 +4,8 @@ namespace MeetApp.Models
 {
     public class MemberViewModel
     {
-        public string login { get; set; }
-        public string role { get; set; }
-        public string state { get; set; }
+        public string Login { get; set; }
+        public string Role { get; set; }
+        public string State { get; set; }
     }
 }

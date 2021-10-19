@@ -10,18 +10,18 @@ namespace MeetApp.DAL.Models
         public Guid Id { get; set; }
 
         [Required]
-        public string title { get; set; }
+        public string Title { get; set; }
 
         [Required]
         [ForeignKey("meetId")]
-        public IList<Dates> datesList { get; set; }
+        public IList<Dates> DatesList { get; set; }
 
         [Required]
         [ForeignKey("meetId")]
-        public IList<Member> membersList { get; set; }
+        public IList<Member> MembersList { get; set; }
 
-        public bool fixedDate { get; set; }
+        public bool FixedDate { get; set; }
 
-        public string state { get; set; }
+        public string State { get; set; }
     }
 }

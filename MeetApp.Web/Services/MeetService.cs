@@ -28,7 +28,7 @@ namespace MeetApp.Web.Services
         }
         public Member GetMemberByUserIdAndMeetId(Guid userId, Guid meetId)
         {
-            return _meetRepository.Get<Member>().FirstOrDefault(x => x.userId == userId && x.meetId == meetId);
+            return _meetRepository.Get<Member>().FirstOrDefault(x => x.UserId == userId && x.MeetId == meetId);
         }
 
         public List<Meet> GetAllOwnedMeetsForUser(User user)
@@ -39,9 +39,9 @@ namespace MeetApp.Web.Services
                 List<Meet> ownedMeets = new List<Meet>();
                 foreach (var meet in meets)
                 {
-                    for (int i = 0; i < meet.membersList.Count; i++)
+                    for (int i = 0; i < meet.MembersList.Count; i++)
                     {
-                        if (meet.membersList[i].userId == user.Id && meet.membersList[i].role == "owner")
+                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].Role == "owner")
                         {
                             ownedMeets.Add(meet);
                         }
@@ -63,9 +63,9 @@ namespace MeetApp.Web.Services
                 List<Meet> memberMeets = new List<Meet>();
                 foreach (var meet in meets)
                 {
-                    for (int i = 0; i < meet.membersList.Count; i++)
+                    for (int i = 0; i < meet.MembersList.Count; i++)
                     {
-                        if (meet.membersList[i].userId == user.Id && meet.membersList[i].role == "member")
+                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].Role == "member")
                         {
                             memberMeets.Add(meet);
                         }
@@ -97,18 +97,18 @@ namespace MeetApp.Web.Services
                 {
                     if (meet.Id == meetId)
                     {
-                        for (int i = 0; i < meet.membersList.Count; i++)
+                        for (int i = 0; i < meet.MembersList.Count; i++)
                         {
-                            if (meet.membersList[i].userId == user.Id)
+                            if (meet.MembersList[i].UserId == user.Id)
                             {
                                 return "user already exist";
                             }
                         }
                         Member member = new Member();
-                        member.userId = user.Id;
-                        member.meetId = meet.Id;
-                        member.role = "member";
-                        member.state = "Not ready";
+                        member.UserId = user.Id;
+                        member.MeetId = meet.Id;
+                        member.Role = "member";
+                        member.State = "Not ready";
                         _meetRepository.Add(member);
                         return "joined";
                     }

@@ -6,10 +6,10 @@ namespace MeetApp.Models
 {
     public class CreateMeetViewModel
     {
-        public string title { get; set; }
-        public string userLogin { get; set; }
-        public bool fixedDate { get; set; }
+        public string Title { get; set; }
+        public string UserLogin { get; set; }
+        public bool FixedDate { get; set; }
         public IList<Dates> DatesList { get; set; }
-        public string alertMessage { get; set; }
+        public string AlertMessage { get; set; }
     }
 }

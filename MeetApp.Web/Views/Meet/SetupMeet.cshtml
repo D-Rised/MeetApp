@@ -171,11 +171,11 @@
         }
     </div>
 
-    @if (ViewBag.Message != null)
+    @if (Model.alertMessage != null)
     {
         <script type="text/javascript">
             window.onload = function () {
-                alert("@ViewBag.Message");
+                alert("@Model.alertMessage");
             };
         </script>
     }

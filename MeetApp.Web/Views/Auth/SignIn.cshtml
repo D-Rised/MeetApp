@@ -1,4 +1,6 @@
-﻿@{
+﻿@using MeetApp.Web.Controllers;
+@model AuthViewModel;
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -14,11 +16,12 @@
             <button name="action" value="register" class="btn btn-light">Register</button>
         </div>
     }
-    @if (ViewBag.Message != null)
+
+    @if (Model.alertMessage != null)
     {
         <script type="text/javascript">
             window.onload = function () {
-                alert("@ViewBag.Message");
+                alert("@Model.alertMessage");
             };
         </script>
     }

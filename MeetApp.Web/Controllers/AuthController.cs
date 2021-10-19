@@ -28,26 +28,28 @@ namespace MeetApp.Web.Controllers
         [HttpGet]
         public IActionResult SignIn()
         {
+            AuthViewModel authVM = new AuthViewModel();
             if (User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("MainMenu", "Meet");
             }
             else
             {
-                return View();
+                return View(authVM);
             }
         }
 
         [HttpPost]
         public async Task<IActionResult> SignIn(string login, string password, string action)
         {
+            AuthViewModel authVM = new AuthViewModel();
             if (action == "login" && login != null && password != null)
             {
                 var user = await _userManager.FindByNameAsync(login);
                 if (user == null)
                 {
-                    ViewBag.Message = string.Format("User not found!");
-                    return View();
+                    authVM.alertMessage = "User not found!";
+                    return View(authVM);
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
@@ -58,8 +60,8 @@ namespace MeetApp.Web.Controllers
                 }
                 else
                 {
-                    ViewBag.Message = string.Format("Login or password invalid!");
-                    return View();
+                    authVM.alertMessage = "Login or password invalid!";
+                    return View(authVM);
                 }
             }
             else if (action == "register")
@@ -67,15 +69,13 @@ namespace MeetApp.Web.Controllers
                 var user = await _userManager.FindByNameAsync(login);
                 if (user != null)
                 {
-                    ViewBag.Message = string.Format("User already exist!");
-                    return View();
+                    authVM.alertMessage = "User already exist!";
+                    return View(authVM);
                 }
 
                 User newUser = new User();
                 newUser.UserName = login;
                 var result = await _userManager.CreateAsync(newUser, password);
-                Debug.WriteLine(result.Succeeded);
-                Debug.WriteLine(result);
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(newUser, false);
@@ -83,15 +83,20 @@ namespace MeetApp.Web.Controllers
                 }
                 else
                 {
-                    ViewBag.Message = string.Format(result.ToString());
+                    authVM.alertMessage = result.ToString();
+                    return View(authVM);
                 }
             }
-            return View();
+            return View(authVM);
         }
         public IActionResult LogOut()
         {
             _signInManager.SignOutAsync();
             return RedirectToAction("SignIn", "Auth");
         }
+    }
+    public class AuthViewModel
+    {
+        public string alertMessage { get; set; }
     }
 }

@@ -2,7 +2,7 @@ using MeetApp.DAL.Models;
 using System;
 using System.Collections.Generic;
 
-namespace MeetApp.Models
+namespace MeetApp.Web.Models
 {
     public class MainMenuViewModel
     {
@@ -10,5 +10,6 @@ namespace MeetApp.Models
         public IList<Meet> OwnedMeets { get; set; }
         public IList<Meet> MemberMeets { get; set; }
         public string AlertMessage { get; set; }
+        public ActionType ActionType { get; set; }
     }
 }

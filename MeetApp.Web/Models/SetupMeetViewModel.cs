@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MeetApp.Models
+namespace MeetApp.Web.Models
 {
     public class SetupMeetViewModel
     {

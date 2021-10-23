@@ -13,11 +13,11 @@ namespace MeetApp.DAL.Models
         public string Title { get; set; }
 
         [Required]
-        [ForeignKey("meetId")]
+        [ForeignKey("MeetId")]
         public IList<Dates> DatesList { get; set; }
 
         [Required]
-        [ForeignKey("meetId")]
+        [ForeignKey("MeetId")]
         public IList<Member> MembersList { get; set; }
 
         public bool FixedDate { get; set; }

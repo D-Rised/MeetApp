@@ -1,4 +1,4 @@
-﻿@using MeetApp.Web.Controllers;
+﻿@using MeetApp.Web.Models;
 @model CreateMeetViewModel;
 @{
     ViewData["Title"] = "Home Page";
@@ -55,13 +55,13 @@
                         @for (int i = 0; i < Model.DatesList.Count; i++)
                         {
                             <tr>
-                                <td class="col-sm-4">
+                                <td>
                                     <div class='input-group date'>
                                         <input asp-for="@Model.DatesList[i].DateStart" type="datetime" class="form-control" value="@Model.DatesList[i].DateStart" />
                                         <span class="input-group-text bi bi-calendar2"></span>
                                     </div>
                                 </td>
-                                <td class="col-sm-4">
+                                <td>
                                     <div class='input-group date'>
                                         <input asp-for="@Model.DatesList[i].DateEnd" type="datetime" class="form-control" value="@Model.DatesList[i].DateEnd" />
                                         <span class="input-group-text bi bi-calendar2"></span>
@@ -69,13 +69,14 @@
                                 </td>
                                 @if (i > 0)
                                 {
-                                    <td class="col-sm-2">
-                                        <button name="action" value="@i" class="btn btn-warning">Remove date</button>
+                                    <td>
+                                        <input asp-for="@Model.DateIndexToDelete" type="hidden" value="@i"/>
+                                        <button name="actionType" value="@ActionType.DeleteDate" class="btn btn-warning">Delete date</button>
                                     </td>
                                 }
                                 else
                                 {
-                                    <td class="col-sm-2">
+                                    <td>
                                         <a class="deleteRow"></a>
                                     </td>
                                 }
@@ -85,7 +86,7 @@
                     <tfoot>
                         <tr>
                             <td colspan="5" style="text-align: left;">
-                                <button name="action" value="add row" class="btn btn-light">Add row</button>
+                                <button name="actionType" value="@ActionType.AddDate" class="btn btn-light">Add date</button>
                             </td>
                         </tr>
                         <tr>
@@ -96,7 +97,7 @@
 
             <div class="row">
                 <div class="form-group pl-2">
-                    <button name="action" value="create meet" class="btn btn-light">Create meet</button>
+                    <button name="actionType" value="@ActionType.CreateMeet" class="btn btn-light">Create meet</button>
                 </div>
             </div>
 

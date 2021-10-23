@@ -49,23 +49,23 @@ namespace MeetApp.DAL.Repositories
             _context.SaveChanges();
         }
 
-        public void DeleteUser(User entity)
+        public void DeleteUser(User user)
         {
-            _context.Users.Remove(entity);
+            _context.Users.Remove(user);
             _context.SaveChanges();
         }
 
-        public void DeleteMember(Member entity)
+        public void DeleteMember(Member member)
         {
             List<Dates> allDates = _context.Dates.ToList();
             for (int i = 0; i < allDates.Count; i++)
             {
-                if (allDates[i].UserId == entity.UserId)
+                if (allDates[i].UserId == member.UserId)
                 {
                     _context.Dates.Remove(allDates[i]);
                 }
             }
-            _context.Members.Remove(entity);
+            _context.Members.Remove(member);
             _context.SaveChanges();
         }
     }

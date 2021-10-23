@@ -1,17 +1,16 @@
+using System;
 using MeetApp.DAL;
 using MeetApp.DAL.Models;
 using MeetApp.DAL.Repositories;
 using MeetApp.Web.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
 
-namespace MeetApp
+namespace MeetApp.Web
 {
     public class Startup
     {
@@ -26,15 +25,13 @@ namespace MeetApp
         {
             services.AddAuthorization();
 
-            services.AddTransient<MeetRepository>();
-            services.AddTransient<MeetService>();
-
             services.AddControllersWithViews();
 
             services.AddDbContext<DataContext>(options =>
-            {
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-            })
+                {
+                    //options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                    options.UseNpgsql(Configuration.GetConnectionString("SecondaryConnection"));
+                })
                 .AddIdentity<User, Role>(config =>
                 {
                     config.Password.RequireDigit = false;
@@ -51,6 +48,9 @@ namespace MeetApp
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
             });
+
+            services.AddTransient<MeetRepository>();
+            services.AddTransient<MeetService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

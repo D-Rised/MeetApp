@@ -1,6 +1,6 @@
 using System;
 
-namespace MeetApp.Models
+namespace MeetApp.Web.Models
 {
     public class DatesViewModel
     {

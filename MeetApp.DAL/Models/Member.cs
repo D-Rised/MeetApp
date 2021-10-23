@@ -10,7 +10,7 @@ namespace MeetApp.DAL.Models
         public int Id { get; set; }
         public Guid UserId { get; set; }
         public Guid MeetId { get; set; }
-        public string Role { get; set; }
+        public bool IsOwner { get; set; }
         public string State { get; set; }
         public IList<Dates> DatesList { get; set; }
     }

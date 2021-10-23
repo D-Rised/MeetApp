@@ -2,7 +2,7 @@ using MeetApp.DAL.Models;
 using System;
 using System.Collections.Generic;
 
-namespace MeetApp.Models
+namespace MeetApp.Web.Models
 {
     public class CreateMeetViewModel
     {
@@ -11,5 +11,6 @@ namespace MeetApp.Models
         public bool FixedDate { get; set; }
         public IList<Dates> DatesList { get; set; }
         public string AlertMessage { get; set; }
+        public int DateIndexToDelete { get; set; }
     }
 }

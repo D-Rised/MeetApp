@@ -41,7 +41,7 @@ namespace MeetApp.Web.Services
                 {
                     for (int i = 0; i < meet.MembersList.Count; i++)
                     {
-                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].Role == "owner")
+                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].IsOwner)
                         {
                             ownedMeets.Add(meet);
                         }
@@ -65,7 +65,7 @@ namespace MeetApp.Web.Services
                 {
                     for (int i = 0; i < meet.MembersList.Count; i++)
                     {
-                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].Role == "member")
+                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].IsOwner == false)
                         {
                             memberMeets.Add(meet);
                         }
@@ -107,7 +107,7 @@ namespace MeetApp.Web.Services
                         Member member = new Member();
                         member.UserId = user.Id;
                         member.MeetId = meet.Id;
-                        member.Role = "member";
+                        member.IsOwner = false;
                         member.State = "Not ready";
                         _meetRepository.Add(member);
                         return "joined";

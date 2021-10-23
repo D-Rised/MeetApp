@@ -1,4 +1,4 @@
-﻿@using MeetApp.Web.Controllers;
+﻿@using MeetApp.Web.Models;
 @model SetupMeetViewModel;
 @{
     ViewData["Title"] = "Home Page";
@@ -70,19 +70,19 @@
                             @for (int i = 0; i < Model.DatesList.Count; i++)
                             {
                                 <tr>
-                                    <td class="col-sm-4">
+                                    <td>
                                         <div class='input-group date' id='datepicker_start_@i'>
                                             <input asp-for="@Model.DatesList[i].DateStart" type="datetime" class="form-control" readonly="readonly" value="@Model.DatesList[i].DateStart" />
                                             <span class="input-group-text bi bi-calendar2"></span>
                                         </div>
                                     </td>
-                                    <td class="col-sm-4">
+                                    <td>
                                         <div class='input-group date' id='datepicker_end_@i'>
                                             <input asp-for="@Model.DatesList[i].DateEnd" type="datetime" class="form-control" readonly="readonly" value="@Model.DatesList[i].DateEnd" />
                                             <span class="input-group-text bi bi-calendar2"></span>
                                         </div>
                                     </td>
-                                    <td class="col-sm-4">
+                                    <td>
                                         <div class='input-group date' id='datepicker_end_@i'>
                                             <input asp-for="@Model.DatesList[i].MemberLogin" type="datetime" class="form-control" readonly="readonly" value="@Model.DatesList[i].MemberLogin" />
                                             <span class="input-group-text bi bi-calendar2"></span>
@@ -101,36 +101,32 @@
                 <table id="membersTable" class=" table order-list">
                     <thead>
                         <tr>
-                            <td>Member name</td>
-                            <td>Member role</td>
-                            <td>State</td>
+                            <td>Name</td>
+                            <td>Ready</td>
+                            <td></td>
                         </tr>
                     </thead>
                     <tbody>
                         @for (int i = 0; i < Model.MembersList.Count; i++)
                         {
                             <tr>
-                                <td class="col-sm-4">
+                                <td>
                                     <input asp-for="@Model.MembersList[i].Login" type="datetime" class="form-control" readonly="readonly" value="@Model.MembersList[i].Login" />
                                 </td>
-                                <td class="col-sm-4">
-                                    <input asp-for="@Model.MembersList[i].Role" type="datetime" class="form-control" readonly="readonly" value="@Model.MembersList[i].Role" />
-                                </td>
-                                <td class="col-sm-4">
+                                <td>
                                     <input asp-for="@Model.MembersList[i].State" type="datetime" class="form-control" readonly="readonly" value="@Model.MembersList[i].State" />
                                 </td>
-                                @if (i > 0)
-                                {
-                                    <td class="col-sm-2">
-                                        <button asp-controller="Meet" asp-action="KickMemberFromMeet" asp-route-meetId="@Model.MeetId" asp-route-memberId="@i" class="btn btn-warning">Kick</button>
-                                    </td>
-                                }
-                                else
-                                {
-                                    <td class="col-sm-2">
-                                        <a class="deleteRow"></a>
-                                    </td>
-                                }
+                                <td>
+                                    @if (Model.MembersList[i].IsOwner)
+                                    {
+                                        <p>Owner</p>
+                                    }
+                                    else
+                                    {
+                                        <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.KickMember" asp-route-meetId="@Model.MeetId" asp-route-memberId="@i" class="btn btn-warning">Kick</button>
+                                    }
+                                    <input asp-for="@Model.MembersList[i].IsOwner" type="hidden" class="form-control" readonly="readonly" value="@Model.MembersList[i].IsOwner"/>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -143,23 +139,23 @@
                 @if (Model.State == "waiting")
                 {
                     <div class="form-group pl-2">
-                        <button asp-controller="Meet" asp-action="SetupMeet" asp-route-meetId="@Model.MeetId" asp-route-decision="update meet" class="btn btn-light">Update</button>
+                        <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.UpdateMeet" asp-route-meetId="@Model.MeetId" class="btn btn-light">Update</button>
                     </div>
                     @if (Model.FixedDate)
                     {
                         <div class="form-group pl-2">
-                            <button asp-controller="Meet" asp-action="SetupMeet" asp-route-meetId="@Model.MeetId" asp-route-decision="launch meet" class="btn btn-light">Launch</button>
+                            <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.LaunchMeet" asp-route-meetId="@Model.MeetId" class="btn btn-light">Launch</button>
                         </div>
                     }
                     else
                     {
                         <div class="form-group pl-2">
-                            <button asp-controller="Meet" asp-action="SetupMeet" asp-route-meetId="@Model.MeetId" asp-route-decision="calculate meet" class="btn btn-light">Calculate</button>
+                            <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.CalculateMeet" asp-route-meetId="@Model.MeetId" class="btn btn-light">Calculate</button>
                         </div>
                     }
                 }
                 <div class="form-group pl-2">
-                    <button asp-controller="Meet" asp-action="SetupMeet" asp-route-meetId="@Model.MeetId" asp-route-decision="delete meet" class="btn btn-warning">Delete</button>
+                    <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.DeleteMeet" asp-route-meetId="@Model.MeetId" class="btn btn-warning">Delete</button>
                 </div>
             </div>
 

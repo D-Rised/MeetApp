@@ -1,18 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using MeetApp.DAL.Models;
-using MeetApp.Web.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
-using MeetApp.Models;
+using MeetApp.Web.Models;
 
 namespace MeetApp.Web.Controllers
 {
@@ -29,28 +19,26 @@ namespace MeetApp.Web.Controllers
         [HttpGet]
         public IActionResult SignIn()
         {
-            AuthViewModel authVM = new AuthViewModel();
-            if (User.Identity.IsAuthenticated)
+            var authViewModel = new AuthViewModel();
+            if (User.Identity is {IsAuthenticated: true})
             {
                 return RedirectToAction("MainMenu", "Meet");
             }
-            else
-            {
-                return View(authVM);
-            }
+            return View(authViewModel);
         }
 
         [HttpPost]
         public async Task<IActionResult> SignIn(string login, string password, string action)
         {
-            AuthViewModel authVM = new AuthViewModel();
+            var authViewModel = new AuthViewModel();
+            
             if (action == "login" && login != null && password != null)
             {
                 var user = await _userManager.FindByNameAsync(login);
                 if (user == null)
                 {
-                    authVM.alertMessage = "User not found!";
-                    return View(authVM);
+                    authViewModel.alertMessage = "User not found!";
+                    return View(authViewModel);
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
@@ -59,37 +47,38 @@ namespace MeetApp.Web.Controllers
                 {
                     return RedirectToAction("MainMenu", "Meet");
                 }
-                else
-                {
-                    authVM.alertMessage = "Login or password invalid!";
-                    return View(authVM);
-                }
+
+                authViewModel.alertMessage = "Login or password invalid!";
+                return View(authViewModel);
             }
-            else if (action == "register")
+
+            if (action == "register")
             {
                 var user = await _userManager.FindByNameAsync(login);
                 if (user != null)
                 {
-                    authVM.alertMessage = "User already exist!";
-                    return View(authVM);
+                    authViewModel.alertMessage = "User already exist!";
+                    return View(authViewModel);
                 }
 
-                User newUser = new User();
-                newUser.UserName = login;
+                var newUser = new User
+                {
+                    UserName = login
+                };
                 var result = await _userManager.CreateAsync(newUser, password);
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(newUser, false);
                     return RedirectToAction("MainMenu", "Meet");
                 }
-                else
-                {
-                    authVM.alertMessage = result.ToString();
-                    return View(authVM);
-                }
+
+                authViewModel.alertMessage = result.ToString();
+                return View(authViewModel);
             }
-            return View(authVM);
+            return View(authViewModel);
         }
+        
+        [HttpGet]
         public IActionResult LogOut()
         {
             _signInManager.SignOutAsync();

@@ -7,5 +7,6 @@ namespace MeetApp.Web.Models
         public string Login { get; set; }
         public bool IsOwner { get; set; }
         public string State { get; set; }
+        public Guid Id { get; set; }
     }
 }

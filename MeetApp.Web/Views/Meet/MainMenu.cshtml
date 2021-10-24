@@ -52,7 +52,7 @@
                                 <p>@Model.OwnedMeets[i].State</p>
                             </td>
                             <td class="col-sm-2">
-                                <a class="btn btn-light" asp-controller="Meet" asp-action="SetupMeet" asp-route-index="@i">Setup</a>
+                                <a class="btn btn-light" asp-controller="Meet" asp-action="SetupMeet" asp-route-id="@Model.OwnedMeets[i].Id">Setup</a>
                             </td>
                         </tr>
                     }
@@ -82,7 +82,7 @@
                                 <p>@Model.MemberMeets[i].State</p>
                             </td>
                             <td class="col-sm-2">
-                                <a class="btn btn-light" asp-controller="Meet" asp-action="OpenMeet" asp-route-index="@i">Open</a>
+                                <a class="btn btn-light" asp-controller="Meet" asp-action="OpenMeet" asp-route-id="@Model.MemberMeets[i].Id">Open</a>
                             </td>
                         </tr>
                     }

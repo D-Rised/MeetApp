@@ -3,6 +3,7 @@ using MeetApp.DAL.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeetApp.Web.Services
 {
@@ -22,9 +23,9 @@ namespace MeetApp.Web.Services
         {
             return _meetRepository.Get<User>().FirstOrDefault(x => x.UserName == login);
         }
-        public User GetUserById(Guid Id)
+        public User GetUserById(Guid id)
         {
-            return _meetRepository.Get<User>().FirstOrDefault(x => x.Id == Id);
+            return _meetRepository.Get<User>().FirstOrDefault(x => x.Id == id);
         }
         public Member GetMemberByUserIdAndMeetId(Guid userId, Guid meetId)
         {
@@ -36,7 +37,11 @@ namespace MeetApp.Web.Services
             if (user != null)
             {
                 List<Meet> meets = _meetRepository.GetAllMeets().ToList();
+                
+                List<Meet> meetsTrue = _meetRepository.GetAllMeets().ToList();
+                
                 List<Meet> ownedMeets = new List<Meet>();
+                
                 foreach (var meet in meets)
                 {
                     for (int i = 0; i < meet.MembersList.Count; i++)
@@ -79,7 +84,12 @@ namespace MeetApp.Web.Services
                 return null;
             }
         }
-       
+
+        public Meet GetMeetById(Guid id)
+        {
+            return _meetRepository.Get<Meet>().Include(x => x.MembersList).Include(x => x.DatesList).FirstOrDefault(x => x.Id == id);
+        }
+        
         public void CreateNewMeet(Meet meet)
         {
             if (meet != null)

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MeetApp.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +25,11 @@ namespace MeetApp.DAL.Repositories
             return meets;
         }
 
+        // public IQueryable<Meet> GetAllOwnerMeets(User user)
+        // {
+        //     var meets = _context.
+        // }
+
         public IQueryable<T> Get<T>() where T : class
         {
             return _context.Set<T>().AsQueryable();
@@ -43,6 +45,7 @@ namespace MeetApp.DAL.Repositories
         {
             _context.SaveChanges();
         }
+        
         public void DeleteMeet(Meet meet)
         {
             _context.Meets.Remove(meet);

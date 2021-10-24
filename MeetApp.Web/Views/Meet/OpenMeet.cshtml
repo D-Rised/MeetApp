@@ -36,7 +36,7 @@
             <div class="row">
                 <div class="form-group">
                     <label>Meet invite key:</label>
-                    <p class="form-control input-group-text text-black-50">@Model.MeetId</p>
+                    <input asp-for="@Model.MeetId" type="text" class="form-control" readonly="readonly" value="@Model.MeetId" />
                 </div>
             </div>
 
@@ -185,7 +185,7 @@
 
                 <div class="row">
                     <div class="form-group pl-2">
-                        <button asp-controller="Meet" asp-action="OpenMeet" asp-route-meetId="@Model.MeetId" asp-route-actionType="@ActionType.Confirm" class="btn btn-light">Confirm</button>
+                        <button asp-controller="Meet" asp-action="OpenMeet" asp-route-actionType="@ActionType.Confirm" class="btn btn-light">Confirm</button>
                     </div>
                 </div>
             }

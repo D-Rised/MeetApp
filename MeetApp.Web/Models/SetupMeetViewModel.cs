@@ -11,7 +11,6 @@ namespace MeetApp.Web.Models
         public string State { get; set; }
         public string MemberState { get; set; }
         public bool FixedDate { get; set; }
-        public int Index { get; set; }
         public IList<DatesViewModel> DatesList { get; set; }
         public IList<MemberViewModel> MembersList { get; set; }
         public string AlertMessage { get; set; }

@@ -21,17 +21,24 @@ namespace MeetApp.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult MainMenu()
+        public IActionResult MainMenu(string alertMessage)
         {
             var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
             var user = _meetService.GetUserByLogin(login);
+
+            if (user == null)
+            {
+                return RedirectToAction("LogOut", "Auth");
+            }
+            
             if (User.Identity is {IsAuthenticated: true})
             {
                 var mainMenuViewModel = new MainMenuViewModel
                 {
                     OwnedMeets = _meetService.GetAllOwnedMeetsForUser(user),
                     MemberMeets = _meetService.GetAllMemberMeetsForUser(user),
-                    UserLogin = user.UserName
+                    UserLogin = user.UserName,
+                    AlertMessage = alertMessage
                 };
                 return View(mainMenuViewModel);
             }
@@ -40,116 +47,61 @@ namespace MeetApp.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult MainMenu(MainMenuViewModel mainMenuViewModel, ActionType actionType, string meetId)
+        public IActionResult JoinMeet(string meetId)
         {
             var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
             var user = _meetService.GetUserByLogin(login);
+            string alertMessage;
 
-            if (User.Identity is not {IsAuthenticated: true}) return RedirectToAction("SignIn", "Auth");
-
-            if (actionType == ActionType.Join)
+            if (user == null)
             {
-                if (Guid.TryParse(meetId, out Guid guidMeetId))
-                {
-                    if (_meetService.JoinMeet(user, guidMeetId) == "joined")
-                    {
-                        mainMenuViewModel.AlertMessage = "You joined to meet!";
-                    }
-                    else if (_meetService.JoinMeet(user, guidMeetId) == "user already exist")
-                    {
-                        mainMenuViewModel.AlertMessage = "You already joined to this meet!";
-                    }
-                    else
-                    {
-                        mainMenuViewModel.AlertMessage = "No meet found for this invite key!";
-                    }
-                }
-                else
-                {
-                    mainMenuViewModel.AlertMessage = "No meet found for this invite key!";
-                }
+                return RedirectToAction("MainMenu", "Meet");
             }
-
-            mainMenuViewModel.OwnedMeets = _meetService.GetAllOwnedMeetsForUser(user);
-            mainMenuViewModel.MemberMeets = _meetService.GetAllMemberMeetsForUser(user);
-            mainMenuViewModel.UserLogin = user.UserName;
             
-            return View(mainMenuViewModel);
-        }
+            if (User.Identity is not {IsAuthenticated: true}) return RedirectToAction("SignIn", "Auth");
+            
+            if (Guid.TryParse(meetId, out Guid guidMeetId))
+            {
+                if (_meetService.JoinMeet(user, guidMeetId) == "")
+                {
+                    return RedirectToAction("OpenMeet", "Meet", new { id = guidMeetId });
+                }
+            }
 
+            alertMessage = _meetService.JoinMeet(user, guidMeetId);
+            return RedirectToAction("MainMenu", "Meet", new { alertMessage = alertMessage });
+        }
+        
         [HttpGet]
-        public IActionResult CreateMeet()
+        public IActionResult NewMeet(string alertMessage)
         {
             var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
             var user = _meetService.GetUserByLogin(login);
-            if (login != "")
+            
+            if (user == null)
             {
-                var createMeetViewModel = new CreateMeetViewModel
-                {
-                    DatesList = new List<Dates>(),
-                    Title = "Dune the board game",
-                    UserLogin = user.UserName,
-                    FixedDate = false
-                };
-                var dates = new Dates() {
-                    DateStart = DateTime.Now.AddDays(1),
-                    DateEnd = DateTime.Now.AddDays(1).AddHours(2),
-                };
-                createMeetViewModel.DatesList.Add(dates);
-                return View(createMeetViewModel);
+                return RedirectToAction("MainMenu", "Meet");
             }
-
-            return RedirectToAction("MainMenu", "Meet");
+            
+            var createMeetViewModel = new CreateMeetViewModel
+            {
+                DatesList = new List<Dates>(),
+                Title = "Dune the board game",
+                UserLogin = user.UserName,
+                FixedDate = false,
+                AlertMessage = alertMessage
+            };
+            var dates = new Dates() {
+                DateStart = DateTime.Now.AddDays(1),
+                DateEnd = DateTime.Now.AddDays(1).AddHours(2)
+            };
+            createMeetViewModel.DatesList.Add(dates);
+            return View(createMeetViewModel);
         }
 
         [HttpPost]
-        public IActionResult CreateMeet(CreateMeetViewModel createMeetViewModel, ActionType actionType)
+        public IActionResult NewMeet(CreateMeetViewModel createMeetViewModel, ActionType actionType)
         {
-            var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
-            var user = _meetService.GetUserByLogin(login);
-            if (actionType == ActionType.CreateMeet)
-            {
-                if (createMeetViewModel.FixedDate && createMeetViewModel.DatesList.Count > 1)
-                {
-                    createMeetViewModel.AlertMessage = "Select only one date with fixed date parameter!";
-                    return View(createMeetViewModel);
-                }
-
-                foreach (var dates in createMeetViewModel.DatesList)
-                {
-                    if (dates.DateStart >= dates.DateEnd || dates.DateStart < DateTime.Now)
-                    {
-                        createMeetViewModel.AlertMessage = "Incorrect date!";
-                        return View(createMeetViewModel);
-                    }
-                }
-
-                var newMeet = new Meet
-                {
-                    Id = Guid.NewGuid(),
-                    Title = createMeetViewModel.Title,
-                    DatesList = createMeetViewModel.DatesList,
-                    FixedDate = createMeetViewModel.FixedDate
-                };
-
-                foreach (var dates in newMeet.DatesList.ToList())
-                {
-                    dates.UserId = user.Id;
-                }
-                newMeet.MembersList = new List<Member>() { new Member() {
-                    UserId = user.Id,
-                    MeetId = newMeet.Id,
-                    IsOwner = true,
-                    State = "Ready",
-                    DatesList = createMeetViewModel.DatesList
-                }};
-                newMeet.State = "waiting";
-
-                _meetService.CreateNewMeet(newMeet);
-
-                return RedirectToAction("CreatedMeet", "Meet", new { @meetId = newMeet.Id });
-            }
-            
             if (actionType == ActionType.AddDate)
             {
                 var dates = new Dates()
@@ -170,10 +122,57 @@ namespace MeetApp.Web.Controllers
             return RedirectToAction("SignIn", "Auth");
         }
 
-        [HttpGet]
-        public IActionResult CreatedMeet(Guid meetId)
+        [HttpPost]
+        public IActionResult CreateMeet(CreateMeetViewModel createMeetViewModel)
         {
-            return View(meetId);
+            var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
+            var user = _meetService.GetUserByLogin(login);
+            string alertMessage;
+            
+            if (user == null || createMeetViewModel.DatesList == null)
+            {
+                return RedirectToAction("MainMenu", "Meet");
+            }
+            
+            if (createMeetViewModel.FixedDate && createMeetViewModel.DatesList.Count > 1)
+            {
+                alertMessage = "Select only one date with fixed date parameter!";
+                return RedirectToAction("NewMeet", "Meet", new { alertMessage = alertMessage });
+            }
+
+            foreach (var dates in createMeetViewModel.DatesList)
+            {
+                if (dates.DateStart >= dates.DateEnd || dates.DateStart < DateTime.Now)
+                {
+                    alertMessage = "Incorrect date!";
+                    return RedirectToAction("NewMeet", "Meet", new { alertMessage = alertMessage });
+                }
+            }
+
+            var newMeet = new Meet
+            {
+                Id = Guid.NewGuid(),
+                Title = createMeetViewModel.Title,
+                DatesList = createMeetViewModel.DatesList,
+                FixedDate = createMeetViewModel.FixedDate
+            };
+
+            foreach (var dates in newMeet.DatesList.ToList())
+            {
+                dates.UserId = user.Id;
+            }
+            newMeet.MembersList = new List<Member>() { new Member() {
+                UserId = user.Id,
+                MeetId = newMeet.Id,
+                IsOwner = true,
+                State = "Ready",
+                DatesList = createMeetViewModel.DatesList
+            }};
+            newMeet.State = "waiting";
+
+            _meetService.CreateNewMeet(newMeet);
+
+            return RedirectToAction("SetupMeet", "Meet", new { id = newMeet.Id });
         }
 
         [HttpGet]
@@ -242,109 +241,140 @@ namespace MeetApp.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult SetupMeet(SetupMeetViewModel setupMeetViewModel, ActionType actionType, Guid memberId)
+        public IActionResult UpdateMeet(SetupMeetViewModel setupMeetViewModel)
+        {
+            Meet meet = _meetService.GetMeetById(setupMeetViewModel.MeetId);
+            
+            if (meet == null || meet.DatesList == null || meet.MembersList == null)
+            {
+                return RedirectToAction("MainMenu", "Meet");
+            }
+            
+            if (meet.State == "waiting")
+            {
+                meet.Title = setupMeetViewModel.Title;
+                _meetService.SaveAll();
+            }
+
+            return RedirectToAction("SetupMeet", "Meet", new { id = setupMeetViewModel.MeetId });
+        }
+        
+        [HttpPost]
+        public IActionResult CalculateMeet(SetupMeetViewModel setupMeetViewModel)
         {
             var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
             var user = _meetService.GetUserByLogin(login);
+            Meet meet = _meetService.GetMeetById(setupMeetViewModel.MeetId);
+            
+            if (user == null || meet == null || meet.DatesList == null || meet.MembersList == null)
+            {
+                return RedirectToAction("MainMenu", "Meet");
+            }
+            
+            Member ownerMember = _meetService.GetMemberByUserIdAndMeetId(user.Id, meet.Id);
+            List<Dates> crossDates = ownerMember.DatesList.ToList();
+
+            foreach (var member in meet.MembersList.ToList())
+            {
+                if (member.UserId != user.Id && member.DatesList != null)
+                {
+                    List<Dates> memberDates = member.DatesList.ToList();
+                    crossDates = CrossDates(crossDates, memberDates);
+                }
+            }
+            if (crossDates != null)
+            {
+                Dates finalDate = new Dates
+                {
+                    MeetId = meet.Id,
+                    UserId = user.Id,
+                    DateStart = crossDates[0].DateStart,
+                    DateEnd = crossDates[0].DateEnd
+                };
+
+                ownerMember.DatesList.Clear();
+                ownerMember.DatesList.Add(finalDate);
+                meet.DatesList.Clear();
+                meet.DatesList.Add(finalDate);
+                meet.State = "launched";
+            }
+            else
+            {
+                meet.State = "not match";
+            }
+            _meetService.SaveAll();
+
+            return RedirectToAction("SetupMeet", "Meet", new { id = setupMeetViewModel.MeetId });
+        }
+        
+        [HttpPost]
+        public IActionResult LaunchMeet(SetupMeetViewModel setupMeetViewModel)
+        {
+            var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
+            var user = _meetService.GetUserByLogin(login);
+            Meet meet = _meetService.GetMeetById(setupMeetViewModel.MeetId);
+            
+            if (user == null || meet == null || meet.DatesList == null || meet.MembersList == null)
+            {
+                return RedirectToAction("MainMenu", "Meet");
+            }
+            
+            if (meet.FixedDate)
+            {
+                Member ownerMember = _meetService.GetMemberByUserIdAndMeetId(user.Id, meet.Id);
+
+                Dates finalDate = new Dates
+                {
+                    MeetId = meet.Id,
+                    UserId = user.Id,
+                    DateStart = meet.DatesList[0].DateStart,
+                    DateEnd = meet.DatesList[0].DateEnd
+                };
+
+                ownerMember.DatesList.Clear();
+                ownerMember.DatesList.Add(finalDate);
+                meet.DatesList.Clear();
+                meet.DatesList.Add(finalDate);
+                meet.State = "launched";
+
+                _meetService.SaveAll();
+            }
+
+            return RedirectToAction("SetupMeet", "Meet", new { id = setupMeetViewModel.MeetId });
+        }
+
+        [HttpPost]
+        public IActionResult DeleteMeet(SetupMeetViewModel setupMeetViewModel)
+        {
             Meet meet = _meetService.GetMeetById(setupMeetViewModel.MeetId);
 
             if (meet == null || meet.DatesList == null || meet.MembersList == null)
             {
                 return RedirectToAction("MainMenu", "Meet");
             }
-            
-            if (actionType == ActionType.UpdateMeet)
-            {
-                if (meet.State == "waiting")
-                {
-                    meet.Title = setupMeetViewModel.Title;
-                    _meetService.SaveAll();
-                }
-                return SetupMeet(setupMeetViewModel.MeetId);
-            }
 
-            if (actionType == ActionType.KickMember)
-            {
-                Member memberToDelete = _meetService.GetMemberByUserIdAndMeetId(memberId, setupMeetViewModel.MeetId);
-                if (memberToDelete.IsOwner == false)
-                {
-                    _meetService.DeleteMember(memberToDelete);
-                    _meetService.SaveAll();
-                }
-                return SetupMeet(setupMeetViewModel.MeetId);
-            }
-
-            if (actionType == ActionType.CalculateMeet)
-            {
-                Member ownerMember = _meetService.GetMemberByUserIdAndMeetId(user.Id, meet.Id);
-                List<Dates> crossDates = ownerMember.DatesList.ToList();
-
-                foreach (var member in meet.MembersList.ToList())
-                {
-                    if (member.UserId != user.Id && member.DatesList != null)
-                    {
-                        List<Dates> memberDates = member.DatesList.ToList();
-                        crossDates = CrossDates(crossDates, memberDates);
-                    }
-                }
-                if (crossDates != null)
-                {
-                    Dates finalDate = new Dates
-                    {
-                        MeetId = meet.Id,
-                        UserId = user.Id,
-                        DateStart = crossDates[0].DateStart,
-                        DateEnd = crossDates[0].DateEnd
-                    };
-
-                    ownerMember.DatesList.Clear();
-                    ownerMember.DatesList.Add(finalDate);
-                    meet.DatesList.Clear();
-                    meet.DatesList.Add(finalDate);
-                    meet.State = "launched";
-                }
-                else
-                {
-                    meet.State = "not match";
-                }
-                _meetService.SaveAll();
-
-                return SetupMeet(setupMeetViewModel.MeetId);
-            }
-
-            if (actionType == ActionType.LaunchMeet)
-            {
-                if (meet.FixedDate)
-                {
-                    Member ownerMember = _meetService.GetMemberByUserIdAndMeetId(user.Id, meet.Id);
-
-                    Dates finalDate = new Dates
-                    {
-                        MeetId = meet.Id,
-                        UserId = user.Id,
-                        DateStart = meet.DatesList[0].DateStart,
-                        DateEnd = meet.DatesList[0].DateEnd
-                    };
-
-                    ownerMember.DatesList.Clear();
-                    ownerMember.DatesList.Add(finalDate);
-                    meet.DatesList.Clear();
-                    meet.DatesList.Add(finalDate);
-                    meet.State = "launched";
-
-                    _meetService.SaveAll();
-                }
-
-                return SetupMeet(setupMeetViewModel.MeetId);
-            }
-
-            if (actionType == ActionType.DeleteMeet)
-            {
-                _meetService.DeleteMeet(meet);
-                return RedirectToAction("MainMenu", "Meet");
-            }
+            _meetService.DeleteMeet(meet);
 
             return RedirectToAction("MainMenu", "Meet");
+        }
+
+        [HttpPost]
+        public IActionResult KickMemberFromMeet(SetupMeetViewModel setupMeetViewModel, Guid memberId)
+        {
+            Member memberToDelete = _meetService.GetMemberByUserIdAndMeetId(memberId, setupMeetViewModel.MeetId);
+            
+            if (memberToDelete == null)
+            {
+                return RedirectToAction("MainMenu", "Meet");
+            }
+            
+            if (memberToDelete.IsOwner == false)
+            {
+                _meetService.DeleteMember(memberToDelete);
+                _meetService.SaveAll();
+            }
+
+            return RedirectToAction("SetupMeet", "Meet", new { id = setupMeetViewModel.MeetId });
         }
         
         public List<Dates> CrossDates(List<Dates> crossDates, List<Dates> memberDates)
@@ -443,63 +473,6 @@ namespace MeetApp.Web.Controllers
         [HttpPost]
         public IActionResult OpenMeet(SetupMeetViewModel setupMeetViewModel, ActionType actionType, int dateId)
         {
-            var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
-            var user = _meetService.GetUserByLogin(login);
-            Meet meet = _meetService.GetMeetById(setupMeetViewModel.MeetId);
-
-            if (actionType == ActionType.Confirm)
-            {
-                foreach (var dates in setupMeetViewModel.DatesList)
-                {
-                    if (dates.DateStart >= dates.DateEnd || dates.DateStart < DateTime.Now)
-                    {
-                        setupMeetViewModel.AlertMessage = "Incorrect date!";
-                        return View(setupMeetViewModel);
-                    }
-                }
-                foreach (var member in meet.MembersList.ToList())
-                {
-                    if (member.UserId == user.Id && member.State != "Ready")
-                    {
-                        member.DatesList = new List<Dates>();
-                        foreach (var dates in meet.DatesList.ToList())
-                        {
-                            if (dates.UserId == user.Id)
-                            {
-                                meet.DatesList.Remove(dates);
-                                member.DatesList.Remove(dates);
-                            }
-                        }
-                        foreach (var datesItem in setupMeetViewModel.DatesList)
-                        {
-                            var dates = new Dates
-                            {
-                                Id = datesItem.Id,
-                                MeetId = datesItem.MeetId,
-                                UserId = user.Id,
-                                DateStart = datesItem.DateStart,
-                                DateEnd = datesItem.DateEnd
-                            };
-                            meet.DatesList.Add(dates);
-                            member.DatesList.Add(dates);
-                        }
-                        foreach (var memberViewModel in setupMeetViewModel.MembersList)
-                        {
-                            if (memberViewModel.Login == user.UserName)
-                            {
-                                memberViewModel.State = "Ready";
-                            }
-                        }
-                        setupMeetViewModel.MemberState = "Ready";
-                        member.State = "Ready";
-                        _meetService.SaveAll();
-                        return OpenMeet(setupMeetViewModel.MeetId);
-                    }
-                }
-
-                return View(setupMeetViewModel);
-            }
-
             if (actionType == ActionType.AddDate)
             {
                 var datesViewModel = new DatesViewModel()
@@ -520,6 +493,68 @@ namespace MeetApp.Web.Controllers
             }
 
             return RedirectToAction("MainMenu", "Meet");
+        }
+        
+        [HttpPost]
+        public IActionResult ConfirmDates(SetupMeetViewModel setupMeetViewModel)
+        {
+            var login = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultNameClaimType)?.Value;
+            var user = _meetService.GetUserByLogin(login);
+            Meet meet = _meetService.GetMeetById(setupMeetViewModel.MeetId);
+            
+            if (user == null || meet == null || meet.DatesList == null || meet.MembersList == null)
+            {
+                return RedirectToAction("MainMenu", "Meet");
+            }
+            
+            foreach (var dates in setupMeetViewModel.DatesList)
+            {
+                if (dates.DateStart >= dates.DateEnd || dates.DateStart < DateTime.Now)
+                {
+                    setupMeetViewModel.AlertMessage = "Incorrect date!";
+                    return RedirectToAction("OpenMeet", "Meet", new { id = setupMeetViewModel.MeetId });
+                }
+            }
+            foreach (var member in meet.MembersList.ToList())
+            {
+                if (member.UserId == user.Id && member.State != "Ready")
+                {
+                    member.DatesList = new List<Dates>();
+                    foreach (var dates in meet.DatesList.ToList())
+                    {
+                        if (dates.UserId == user.Id)
+                        {
+                            meet.DatesList.Remove(dates);
+                            member.DatesList.Remove(dates);
+                        }
+                    }
+                    foreach (var datesItem in setupMeetViewModel.DatesList)
+                    {
+                        var dates = new Dates
+                        {
+                            Id = datesItem.Id,
+                            MeetId = datesItem.MeetId,
+                            UserId = user.Id,
+                            DateStart = datesItem.DateStart,
+                            DateEnd = datesItem.DateEnd
+                        };
+                        meet.DatesList.Add(dates);
+                        member.DatesList.Add(dates);
+                    }
+                    foreach (var memberViewModel in setupMeetViewModel.MembersList)
+                    {
+                        if (memberViewModel.Login == user.UserName)
+                        {
+                            memberViewModel.State = "Ready";
+                        }
+                    }
+                    setupMeetViewModel.MemberState = "Ready";
+                    member.State = "Ready";
+                    _meetService.SaveAll();
+                }
+            }
+
+            return RedirectToAction("OpenMeet", "Meet", new { id = setupMeetViewModel.MeetId });
         }
     }
 }

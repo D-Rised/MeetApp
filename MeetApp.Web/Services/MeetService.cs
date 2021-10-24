@@ -100,35 +100,36 @@ namespace MeetApp.Web.Services
         
         public string JoinMeet(User user, Guid meetId)
         {
-            if (user != null)
+            Meet meet = GetMeetById(meetId);
+            
+            if (user == null || meet == null)
             {
-                List<Meet> meets = _meetRepository.GetAllMeets().ToList();
-                foreach (var meet in meets)
+                return "No meet found for this invite key!";
+            }
+
+            if (meet.State == "launched")
+            {
+                return "Meet was already launched!";
+            }
+
+            for (int i = 0; i < meet.MembersList.Count; i++)
+            {
+                if (meet.MembersList[i].UserId == user.Id)
                 {
-                    if (meet.Id == meetId)
-                    {
-                        for (int i = 0; i < meet.MembersList.Count; i++)
-                        {
-                            if (meet.MembersList[i].UserId == user.Id)
-                            {
-                                return "user already exist";
-                            }
-                        }
-                        Member member = new Member();
-                        member.UserId = user.Id;
-                        member.MeetId = meet.Id;
-                        member.IsOwner = false;
-                        member.State = "Not ready";
-                        _meetRepository.Add(member);
-                        return "joined";
-                    }
+                    return "You already joined to this meet!";
                 }
-                return "no found";
             }
-            else
+            
+            var member = new Member
             {
-                return null;
-            }
+                UserId = user.Id,
+                MeetId = meet.Id,
+                IsOwner = false,
+                State = "Not ready"
+            };
+            _meetRepository.Add(member);
+            
+            return "";
         }
 
         public void SaveAll()

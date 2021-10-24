@@ -75,7 +75,7 @@
                                     @if (i > 0)
                                     {
                                     <td>
-                                        <button asp-controller="Meet" asp-action="OpenMeet" asp-route-meetId="@Model.MeetId" asp-route-actionType="@ActionType.DeleteDate" asp-route-dateId="@i" class="btn btn-warning">Delete date</button>
+                                        <button asp-controller="Meet" asp-action="OpenMeet" asp-route-actionType="@ActionType.DeleteDate" asp-route-dateId="@i" class="btn btn-warning">Delete date</button>
                                     </td>
                                     }
                                     else
@@ -90,7 +90,7 @@
                         <tfoot>
                             <tr>
                                 <td colspan="5" style="text-align: left;">
-                                    <button asp-controller="Meet" asp-action="OpenMeet" asp-route-meetId="@Model.MeetId" asp-route-actionType="@ActionType.AddDate" class="btn btn-light">Add date</button>
+                                    <button asp-controller="Meet" asp-action="OpenMeet" asp-route-actionType="@ActionType.AddDate" class="btn btn-light">Add date</button>
                                 </td>
                             </tr>
                             <tr>
@@ -185,7 +185,7 @@
 
                 <div class="row">
                     <div class="form-group pl-2">
-                        <button asp-controller="Meet" asp-action="OpenMeet" asp-route-actionType="@ActionType.Confirm" class="btn btn-light">Confirm</button>
+                        <button asp-controller="Meet" asp-action="ConfirmDates" class="btn btn-light">Confirm</button>
                     </div>
                 </div>
             }

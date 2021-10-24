@@ -21,14 +21,14 @@
         {
             <div class="input-group mb-3">
                 <input name="meetId" type="text" class="form-control" placeholder="Key">
-                <button name="actionType" value="@ActionType.Join" class="btn btn-light">Join</button>
+                <button asp-controller="Meet" asp-action="JoinMeet" class="btn btn-light">Join</button>
             </div>
         }
 
         <div class="col-xs-12" style="height:50px;"></div>
 
         <h5>Create meet</h5>
-        <a class="btn btn-light" asp-controller="Meet" asp-action="CreateMeet">Create</a>
+        <a class="btn btn-light" asp-controller="Meet" asp-action="NewMeet">New meet</a>
 
         <div class="col-xs-12" style="height:50px;"></div>
 

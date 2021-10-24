@@ -123,7 +123,7 @@
                                     }
                                     else
                                     {
-                                        <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.KickMember" asp-route-memberId="@Model.MembersList[i].Id" class="btn btn-warning">Kick</button>
+                                        <button asp-controller="Meet" asp-action="KickMemberFromMeet" asp-route-memberId="@Model.MembersList[i].Id" class="btn btn-warning">Kick</button>
                                     }
                                     <input asp-for="@Model.MembersList[i].IsOwner" type="hidden" class="form-control" readonly="readonly" value="@Model.MembersList[i].IsOwner"/>
                                 </td>
@@ -139,23 +139,23 @@
                 @if (Model.State == "waiting")
                 {
                     <div class="form-group pl-2">
-                        <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.UpdateMeet" class="btn btn-light">Update</button>
+                        <button asp-controller="Meet" asp-action="UpdateMeet" class="btn btn-light">Update</button>
                     </div>
                     @if (Model.FixedDate)
                     {
                         <div class="form-group pl-2">
-                            <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.LaunchMeet" class="btn btn-light">Launch</button>
+                            <button asp-controller="Meet" asp-action="LaunchMeet" class="btn btn-light">Launch</button>
                         </div>
                     }
                     else
                     {
                         <div class="form-group pl-2">
-                            <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.CalculateMeet" class="btn btn-light">Calculate</button>
+                            <button asp-controller="Meet" asp-action="CalculateMeet" class="btn btn-light">Calculate</button>
                         </div>
                     }
                 }
                 <div class="form-group pl-2">
-                    <button asp-controller="Meet" asp-action="SetupMeet" asp-route-actionType="@ActionType.DeleteMeet" class="btn btn-warning">Delete</button>
+                    <button asp-controller="Meet" asp-action="DeleteMeet" class="btn btn-warning">Delete</button>
                 </div>
             </div>
 

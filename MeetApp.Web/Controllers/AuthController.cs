@@ -17,67 +17,74 @@ namespace MeetApp.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult SignIn()
+        public IActionResult SignIn(AuthViewModel authViewModel)
         {
-            var authViewModel = new AuthViewModel();
-            if (User.Identity is {IsAuthenticated: true})
-            {
+            if (User.Identity is { IsAuthenticated: true })
                 return RedirectToAction("MainMenu", "Meet");
-            }
+
             return View(authViewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> SignIn(string login, string password, string action)
+        public async Task<IActionResult> Login(AuthViewModel authViewModel)
         {
-            var authViewModel = new AuthViewModel();
-            
-            if (action == "login" && login != null && password != null)
+            var login = authViewModel.Login;
+            var password = authViewModel.Password;
+
+            if (login == null || password == null)
             {
-                var user = await _userManager.FindByNameAsync(login);
-                if (user == null)
-                {
-                    authViewModel.alertMessage = "User not found!";
-                    return View(authViewModel);
-                }
-
-                var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
-
-                if (result.Succeeded)
-                {
-                    return RedirectToAction("MainMenu", "Meet");
-                }
-
-                authViewModel.alertMessage = "Login or password invalid!";
-                return View(authViewModel);
+                authViewModel.alertMessage = "Incorrect login or password!";
+                return RedirectToAction("SignIn", "Auth", authViewModel);
             }
 
-            if (action == "register")
+            var user = await _userManager.FindByNameAsync(login);
+            if (user == null)
             {
-                var user = await _userManager.FindByNameAsync(login);
-                if (user != null)
-                {
-                    authViewModel.alertMessage = "User already exist!";
-                    return View(authViewModel);
-                }
-
-                var newUser = new User
-                {
-                    UserName = login
-                };
-                var result = await _userManager.CreateAsync(newUser, password);
-                if (result.Succeeded)
-                {
-                    await _signInManager.SignInAsync(newUser, false);
-                    return RedirectToAction("MainMenu", "Meet");
-                }
-
-                authViewModel.alertMessage = result.ToString();
-                return View(authViewModel);
+                authViewModel.alertMessage = "User not found!";
+                return RedirectToAction("SignIn", "Auth", authViewModel);
             }
-            return View(authViewModel);
+
+            var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("MainMenu", "Meet");
+            }
+
+            authViewModel.alertMessage = "Login or password invalid!";
+            return RedirectToAction("SignIn", "Auth", authViewModel);
         }
-        
+
+        [HttpPost]
+        public async Task<IActionResult> Register(AuthViewModel authViewModel)
+        {
+            var login = authViewModel.Login;
+            var password = authViewModel.Password;
+
+            var user = await _userManager.FindByNameAsync(login);
+
+            if (user != null)
+            {
+                authViewModel.alertMessage = "User already exist!";
+                return RedirectToAction("SignIn", "Auth", authViewModel);
+            }
+
+            var newUser = new User
+            {
+                UserName = login
+            };
+
+            var result = await _userManager.CreateAsync(newUser, password);
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(newUser, false);
+                return RedirectToAction("MainMenu", "Meet");
+            }
+
+            authViewModel.alertMessage = result.ToString();
+            return RedirectToAction("SignIn", "Auth", authViewModel);
+        }
+
         [HttpGet]
         public IActionResult LogOut()
         {

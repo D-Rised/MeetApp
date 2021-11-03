@@ -29,8 +29,7 @@ namespace MeetApp.Web
 
             services.AddDbContext<DataContext>(options =>
                 {
-                    //options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-                    options.UseNpgsql(Configuration.GetConnectionString("SecondaryConnection"));
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 })
                 .AddIdentity<User, Role>(config =>
                 {

@@ -1,5 +1,5 @@
 ﻿@using MeetApp.Web.Models;
-@model MainMenuViewModel;
+@model MeetListViewModel;
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -17,7 +17,7 @@
         <div class="col-xs-12" style="height:50px;"></div>
 
         <h5>Join to meet</h5>
-        @using (Html.BeginForm("MainMenu", "Meet", FormMethod.Post))
+        @using (Html.BeginForm("Index", "Meet", FormMethod.Post))
         {
             <div class="input-group mb-3">
                 <input name="meetId" type="text" class="form-control" placeholder="Key">
@@ -52,7 +52,7 @@
                                 <p>@Model.OwnedMeets[i].State</p>
                             </td>
                             <td class="col-sm-2">
-                                <a class="btn btn-light" asp-controller="Meet" asp-action="SetupMeet" asp-route-id="@Model.OwnedMeets[i].Id">Setup</a>
+                                <a class="btn btn-light" asp-controller="Meet" asp-action="SetupMeet" asp-route-guid="@Model.OwnedMeets[i].Id">Setup</a>
                             </td>
                         </tr>
                     }
@@ -82,7 +82,7 @@
                                 <p>@Model.MemberMeets[i].State</p>
                             </td>
                             <td class="col-sm-2">
-                                <a class="btn btn-light" asp-controller="Meet" asp-action="OpenMeet" asp-route-id="@Model.MemberMeets[i].Id">Open</a>
+                                <a class="btn btn-light" asp-controller="Meet" asp-action="OpenMeet" asp-route-guid="@Model.MemberMeets[i].Id">Open</a>
                             </td>
                         </tr>
                     }

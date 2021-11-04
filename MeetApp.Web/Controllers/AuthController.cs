@@ -10,6 +10,7 @@ namespace MeetApp.Web.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+
         public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
@@ -20,7 +21,7 @@ namespace MeetApp.Web.Controllers
         public IActionResult SignIn(AuthViewModel authViewModel)
         {
             if (User.Identity is { IsAuthenticated: true })
-                return RedirectToAction("MainMenu", "Meet");
+                return RedirectToAction("Index", "Meet");
 
             return View(authViewModel);
         }
@@ -38,6 +39,7 @@ namespace MeetApp.Web.Controllers
             }
 
             var user = await _userManager.FindByNameAsync(login);
+
             if (user == null)
             {
                 authViewModel.alertMessage = "User not found!";
@@ -48,7 +50,7 @@ namespace MeetApp.Web.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction("MainMenu", "Meet");
+                return RedirectToAction("Index", "Meet");
             }
 
             authViewModel.alertMessage = "Login or password invalid!";
@@ -78,7 +80,7 @@ namespace MeetApp.Web.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(newUser, false);
-                return RedirectToAction("MainMenu", "Meet");
+                return RedirectToAction("Index", "Meet");
             }
 
             authViewModel.alertMessage = result.ToString();

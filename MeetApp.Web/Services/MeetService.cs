@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using MeetApp.Web.Models;
 
 namespace MeetApp.Web.Services
 {
@@ -15,25 +16,16 @@ namespace MeetApp.Web.Services
         {
             _meetRepository = meetRepository;
         }
-        public List<User> GetAllUsers()
-        {
-            return _meetRepository.GetAllUsers().ToList();
-        }
-        public User GetUserByLogin(string login)
-        {
-            return _meetRepository.Get<User>().FirstOrDefault(x => x.UserName == login);
-        }
-        public User GetUserById(Guid id)
-        {
-            return _meetRepository.Get<User>().FirstOrDefault(x => x.Id == id);
-        }
+
         public Member GetMemberByUserIdAndMeetId(Guid userId, Guid meetId)
         {
             return _meetRepository.Get<Member>().FirstOrDefault(x => x.UserId == userId && x.MeetId == meetId);
         }
 
-        public List<Meet> GetAllOwnedMeetsForUser(User user)
+        public List<Meet> GetAllOwnedMeetsForUser(Guid guid)
         {
+            User user = _meetRepository.Get<User>().FirstOrDefault(x => x.Id == guid);
+
             if (user != null)
             {
                 List<Meet> meets = _meetRepository.GetAllMeets().ToList();
@@ -60,8 +52,11 @@ namespace MeetApp.Web.Services
                 return null;
             }
         }
-        public List<Meet> GetAllMemberMeetsForUser(User user)
+
+        public List<Meet> GetAllMemberMeetsForUser(Guid guid)
         {
+            User user = _meetRepository.Get<User>().FirstOrDefault(x => x.Id == guid);
+
             if (user != null)
             {
                 List<Meet> meets = _meetRepository.GetAllMeets().ToList();
@@ -98,26 +93,23 @@ namespace MeetApp.Web.Services
             }
         }
         
-        public string JoinMeet(User user, Guid meetId)
+        public StatusResult JoinMeet(User user, Guid meetId)
         {
             Meet meet = GetMeetById(meetId);
-            
-            if (user == null || meet == null)
-            {
-                return "No meet found for this invite key!";
-            }
+
+            if (user == null)
+                return new StatusResult("Cannot be null " + nameof(user), ResultCode.Null);
+
+            if (meet == null)
+                return new StatusResult("Cannot be null " + nameof(meet), ResultCode.Null);
 
             if (meet.State == "launched")
-            {
-                return "Meet was already launched!";
-            }
+                return new StatusResult("Meet was already launched", ResultCode.Launched);
 
             for (int i = 0; i < meet.MembersList.Count; i++)
             {
                 if (meet.MembersList[i].UserId == user.Id)
-                {
-                    return "You already joined to this meet!";
-                }
+                    return new StatusResult("You already joined to this meet", ResultCode.AlreadyExist);
             }
             
             var member = new Member
@@ -128,14 +120,15 @@ namespace MeetApp.Web.Services
                 State = "Not ready"
             };
             _meetRepository.Add(member);
-            
-            return "";
+
+            return new StatusResult("Successfully joined to the meet", ResultCode.OK);
         }
 
         public void SaveAll()
         {
             _meetRepository.SaveAll();
         }
+
         public void DeleteMember(Member member)
         {
             if (member != null)
@@ -143,6 +136,7 @@ namespace MeetApp.Web.Services
                 _meetRepository.DeleteMember(member);
             }
         }
+
         public void DeleteMeet(Meet meet)
         {
             if (meet != null)

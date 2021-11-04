@@ -4,12 +4,10 @@ using System.Collections.Generic;
 
 namespace MeetApp.Web.Models
 {
-    public class MainMenuViewModel
+    public class MeetListViewModel
     {
-        public string UserLogin { get; set; }
         public IList<Meet> OwnedMeets { get; set; }
         public IList<Meet> MemberMeets { get; set; }
         public string AlertMessage { get; set; }
-        public ActionType ActionType { get; set; }
     }
 }

@@ -49,6 +49,7 @@ namespace MeetApp.Web
             });
 
             services.AddTransient<MeetRepository>();
+            services.AddTransient<UserService>();
             services.AddTransient<MeetService>();
         }
 

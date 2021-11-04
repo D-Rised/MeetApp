@@ -8,7 +8,7 @@ namespace MeetApp.Web.Models
     {
         public string Title { get; set; }
 
-        public string UserLogin { get; set; }
+        public string UserName { get; set; }
 
         public bool FixedDate { get; set; }
 

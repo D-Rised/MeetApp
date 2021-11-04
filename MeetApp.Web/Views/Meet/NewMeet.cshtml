@@ -1,4 +1,5 @@
 ﻿@using MeetApp.Web.Models;
+@using MeetApp.DAL.Models;
 @model CreateMeetViewModel;
 @{
     ViewData["Title"] = "Home Page";
@@ -28,6 +29,7 @@
                 <div class="form-group">
                     <label>Meet name:</label>
                     <input asp-for="@Model.Title" type="text" class="form-control" value="@Model.Title" />
+                    <input asp-for="@Model.UserName" type="hidden" value="@Model.UserName" />
                 </div>
             </div>
 
@@ -70,8 +72,8 @@
                                 @if (i > 0)
                                 {
                                     <td>
-                                        <input asp-for="@Model.DateIndexToDelete" type="hidden" value="@i"/>
-                                        <button name="actionType" value="@ActionType.DeleteDate" class="btn btn-warning">Delete date</button>
+                                        <input asp-for="@Model.DateIndexToDelete" type="hidden" value="@i" />
+                                        <button asp-controller="Meet" asp-action="DeleteDateFromNewMeet" class="btn btn-light">Delete date</button>
                                     </td>
                                 }
                                 else
@@ -86,7 +88,7 @@
                     <tfoot>
                         <tr>
                             <td colspan="5" style="text-align: left;">
-                                <button name="actionType" value="@ActionType.AddDate" class="btn btn-light">Add date</button>
+                                <button asp-controller="Meet" asp-action="AddDateToNewMeet" class="btn btn-light">Add date</button>
                             </td>
                         </tr>
                         <tr>
@@ -104,7 +106,7 @@
             <div class="col-xs-12" style="height:50px;"></div>
 
             <div class="row">
-                <a asp-controller="Meet" asp-action="MainMenu" class="btn btn-warning">Back to main menu</a>
+                <a asp-controller="Meet" asp-action="Index" class="btn btn-warning">Back to main menu</a>
             </div>
         }
     </div>

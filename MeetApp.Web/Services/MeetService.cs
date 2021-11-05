@@ -117,7 +117,7 @@ namespace MeetApp.Web.Services
                 UserId = user.Id,
                 MeetId = meet.Id,
                 IsOwner = false,
-                State = "Not ready"
+                Ready = false
             };
             _meetRepository.Add(member);
 

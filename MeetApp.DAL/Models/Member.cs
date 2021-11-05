@@ -11,7 +11,7 @@ namespace MeetApp.DAL.Models
         public Guid UserId { get; set; }
         public Guid MeetId { get; set; }
         public bool IsOwner { get; set; }
-        public string State { get; set; }
+        public bool Ready { get; set; }
         public IList<Dates> DatesList { get; set; }
     }
 }

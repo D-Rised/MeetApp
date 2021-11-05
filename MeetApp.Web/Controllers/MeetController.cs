@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Mime;
 using System.Security.Claims;
 
 namespace MeetApp.Web.Controllers
@@ -68,16 +70,14 @@ namespace MeetApp.Web.Controllers
         }
         
         [HttpGet]
-        public IActionResult NewMeet(string serializedCreateMeetViewModel)
+        public IActionResult NewMeet(CreateMeetViewModel createMeetViewModel)
         {
             var user = _userService.GetUserById(_userGuid);
             
             if (user == null)
                 return RedirectToAction("Index", "Meet");
 
-            var createMeetViewModel = new CreateMeetViewModel();
-
-            if (serializedCreateMeetViewModel == null)
+            if (createMeetViewModel.DatesList == null)
             {
                 createMeetViewModel = new CreateMeetViewModel
                 {
@@ -95,80 +95,24 @@ namespace MeetApp.Web.Controllers
                 };
 
                 createMeetViewModel.DatesList.Add(dates);
-
-                return View(createMeetViewModel);
             }
-            else
-            {
-                try
-                {
-                    var jsonSettings = new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Ignore,
-                        MissingMemberHandling = MissingMemberHandling.Ignore
-                    };
 
-                    createMeetViewModel = JsonConvert.DeserializeObject<CreateMeetViewModel>(serializedCreateMeetViewModel, jsonSettings);
-
-                    return View(createMeetViewModel);
-                }
-                catch (JsonSerializationException ex)
-                {
-                    return RedirectToAction("Index", "Meet");
-                }
-            }
+            return View(createMeetViewModel);
         }
 
         [HttpPost]
-        public IActionResult AddDateToNewMeet(CreateMeetViewModel createMeetViewModel)
-        {
-            var dates = new Dates()
-            {
-                DateStart = DateTime.Now.AddDays(1),
-                DateEnd = DateTime.Now.AddDays(1).AddHours(2)
-            };
-            createMeetViewModel.DatesList.Add(dates);
-
-            var serializedCreateMeetViewModel = JsonConvert.SerializeObject(createMeetViewModel);
-
-            return RedirectToAction("NewMeet", "Meet", new { serializedCreateMeetViewModel });
-        }
-
-        [HttpPost]
-        public IActionResult DeleteDateFromNewMeet(CreateMeetViewModel createMeetViewModel)
-        {
-            if (createMeetViewModel.DateIndexToDelete > 0)
-            {
-                createMeetViewModel.DatesList.RemoveAt(createMeetViewModel.DateIndexToDelete);
-            }
-
-            var serializedCreateMeetViewModel = JsonConvert.SerializeObject(createMeetViewModel);
-
-            return RedirectToAction("NewMeet", "Meet", new { serializedCreateMeetViewModel });
-        }
-
-        [HttpPost]
-        public IActionResult CreateMeet(CreateMeetViewModel createMeetViewModel)
+        public JsonResult CreateMeet(CreateMeetViewModel createMeetViewModel)
         {
             var user = _userService.GetUserById(_userGuid);
             var newMeetViewModel = new MeetListViewModel();
             
-            if (user == null || createMeetViewModel.DatesList == null)
-                return RedirectToAction("Index", "Meet");
-            
             if (createMeetViewModel.FixedDate && createMeetViewModel.DatesList.Count > 1)
-            {
-                newMeetViewModel.AlertMessage = "Select only one date with fixed date parameter!";
-                return RedirectToAction("NewMeet", "Meet", newMeetViewModel);
-            }
+                return Json(new { success = false, responseText = "Select only one date with fixed date parameter!" });
 
             foreach (var dates in createMeetViewModel.DatesList)
             {
                 if (dates.DateStart >= dates.DateEnd || dates.DateStart < DateTime.Now)
-                {
-                    newMeetViewModel.AlertMessage = "Incorrect date!";
-                    return RedirectToAction("NewMeet", "Meet", newMeetViewModel);
-                }
+                    return Json(new { success = false, responseText = "Incorrect date!" });
             }
 
             var newMeet = new Meet
@@ -188,14 +132,14 @@ namespace MeetApp.Web.Controllers
                 UserId = user.Id,
                 MeetId = newMeet.Id,
                 IsOwner = true,
-                State = "Ready",
+                Ready = true,
                 DatesList = createMeetViewModel.DatesList
             }};
             newMeet.State = "waiting";
 
             _meetService.CreateNewMeet(newMeet);
 
-            return RedirectToAction("SetupMeet", "Meet", new { guid = newMeet.Id });
+            return Json(new { success = true, redirectToUrl = Url.Action("SetupMeet", "Meet") + "?guid=" + newMeet.Id });
         }
 
         [HttpGet]
@@ -217,14 +161,9 @@ namespace MeetApp.Web.Controllers
                     Id = memberItem.UserId,
                     Login = _userService.GetUserById(memberItem.UserId).UserName,
                     IsOwner = memberItem.IsOwner,
-                    State = memberItem.State
+                    Ready = memberItem.Ready
                 };
                 memberViewModels.Add(memberViewModel);
-                    
-                if (memberItem.UserId == user.Id)
-                {
-                    setupMeetViewModel.MemberState = memberItem.State;
-                }
             }
             
             for (int i = 0; i < memberViewModels.Count; i++)
@@ -412,7 +351,7 @@ namespace MeetApp.Web.Controllers
         }
         
         [HttpGet]
-        public IActionResult OpenMeet(Guid guid)
+        public IActionResult ChooseDates(Guid guid)
         {
             var user = _userService.GetUserById(_userGuid);
             Meet meet = _meetService.GetMeetById(guid);
@@ -433,13 +372,85 @@ namespace MeetApp.Web.Controllers
                 {
                     Login = _userService.GetUserById(memberItem.UserId).UserName,
                     IsOwner = memberItem.IsOwner,
-                    State = memberItem.State
+                    Ready = memberItem.Ready
                 };
                 memberViewModels.Add(memberViewModel);
 
                 if (memberItem.UserId == user.Id)
                 {
-                    setupMeetViewModel.MemberState = memberItem.State;
+                    if (memberItem.Ready)
+                    {
+                        return Json(new { success = true, redirectToUrl = Url.Action("OpenMeet", "Meet") + "?guid=" + meet.Id });
+                    }
+                }
+            }
+
+            for (int i = 0; i < memberViewModels.Count; i++)
+            {
+                if (memberViewModels[i].IsOwner && i != 0)
+                {
+                    (memberViewModels[0], memberViewModels[i]) = (memberViewModels[i], memberViewModels[0]);
+                }
+            }
+
+            setupMeetViewModel.MeetId = meet.Id;
+            setupMeetViewModel.Title = meet.Title;
+            setupMeetViewModel.UserName = user.UserName;
+            setupMeetViewModel.State = meet.State;
+
+            List<DatesViewModel> datesViewModels = new List<DatesViewModel>();
+            foreach (var dates in meet.DatesList)
+            {
+                var datesViewModel = new DatesViewModel
+                {
+                    Id = dates.Id,
+                    MeetId = dates.MeetId,
+                    MemberId = dates.UserId,
+                    DateStart = dates.DateStart,
+                    DateEnd = dates.DateEnd,
+                    MemberLogin = _userService.GetUserById(dates.UserId).UserName
+                };
+                datesViewModels.Add(datesViewModel);
+            }
+
+            setupMeetViewModel.DatesList = datesViewModels;
+            setupMeetViewModel.MembersList = memberViewModels;
+
+            return View(setupMeetViewModel);
+        }
+
+        [HttpGet]
+        public IActionResult OpenMeet(Guid guid)
+        {
+            var user = _userService.GetUserById(_userGuid);
+            Meet meet = _meetService.GetMeetById(guid);
+
+            List<MemberViewModel> memberViewModels = new List<MemberViewModel>();
+
+            if (meet == null || meet.DatesList == null || meet.MembersList == null)
+                return RedirectToAction("Index", "Meet");
+
+            var setupMeetViewModel = new SetupMeetViewModel
+            {
+                MeetId = meet.Id
+            };
+
+            foreach (var memberItem in meet.MembersList)
+            {
+                var memberViewModel = new MemberViewModel
+                {
+                    Login = _userService.GetUserById(memberItem.UserId).UserName,
+                    IsOwner = memberItem.IsOwner,
+                    Ready = memberItem.Ready
+                };
+                memberViewModels.Add(memberViewModel);
+
+                if (memberItem.UserId == user.Id)
+                {
+                    if (!memberItem.Ready)
+                    {
+                        return RedirectToAction("ChooseDates", "Meet", new { guid = meet.Id });
+                    }
                 }
             }
 
@@ -478,53 +489,21 @@ namespace MeetApp.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddDateToOpenedMeet(SetupMeetViewModel setupMeetViewModel)
-        {
-            var datesViewModel = new DatesViewModel()
-            {
-                DateStart = DateTime.Now.AddDays(1),
-                DateEnd = DateTime.Now.AddDays(1).AddHours(2),
-            };
-            setupMeetViewModel.DatesList.Add(datesViewModel);
-
-            var serializedSetupMeetViewModel = JsonConvert.SerializeObject(setupMeetViewModel);
-
-            return RedirectToAction("OpenedMeet", "Meet", new { serializedSetupMeetViewModel });
-        }
-
-        [HttpPost]
-        public IActionResult DeleteDateFromOpenedMeet(SetupMeetViewModel setupMeetViewModel)
-        {
-            if (setupMeetViewModel.DateIndexToDelete > 0)
-            {
-                setupMeetViewModel.DatesList.RemoveAt(setupMeetViewModel.DateIndexToDelete);
-            }
-
-            var serializedSetupMeetViewModel = JsonConvert.SerializeObject(setupMeetViewModel);
-
-            return RedirectToAction("OpenedMeet", "Meet", new { serializedSetupMeetViewModel });
-        }
-
-        [HttpPost]
-        public IActionResult ConfirmDates(SetupMeetViewModel setupMeetViewModel)
+        public JsonResult ConfirmDates(SetupMeetViewModel setupMeetViewModel)
         {
             var user = _userService.GetUserById(_userGuid);
             Meet meet = _meetService.GetMeetById(setupMeetViewModel.MeetId);
-            
-            if (user == null || meet == null || meet.DatesList == null || meet.MembersList == null)
-                return RedirectToAction("Index", "Meet");
             
             foreach (var dates in setupMeetViewModel.DatesList)
             {
                 if (dates.DateStart >= dates.DateEnd || dates.DateStart < DateTime.Now)
                 {
-                    setupMeetViewModel.AlertMessage = "Incorrect date!";
-                    return RedirectToAction("OpenMeet", "Meet", new { guid = setupMeetViewModel.MeetId });
+                    return Json(new { success = false, responseText = "Incorrect date!" });
                 }
             }
             foreach (var member in meet.MembersList.ToList())
             {
-                if (member.UserId == user.Id && member.State != "Ready")
+                if (member.UserId == user.Id && !member.Ready)
                 {
                     member.DatesList = new List<Dates>();
                     foreach (var dates in meet.DatesList.ToList())
@@ -552,16 +531,15 @@ namespace MeetApp.Web.Controllers
                     {
                         if (memberViewModel.Login == user.UserName)
                         {
-                            memberViewModel.State = "Ready";
+                            memberViewModel.Ready = true;
                         }
                     }
-                    setupMeetViewModel.MemberState = "Ready";
-                    member.State = "Ready";
+                    member.Ready = true;
                     _meetService.SaveAll();
                 }
             }
 
-            return RedirectToAction("OpenMeet", "Meet", new { guid = setupMeetViewModel.MeetId });
+            return Json(new { success = true, redirectToUrl = Url.Action("OpenMeet", "Meet") + "?guid=" + meet.Id });
         }
     }
 }

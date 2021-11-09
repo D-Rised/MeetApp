@@ -28,23 +28,7 @@ namespace MeetApp.Web.Services
 
             if (user != null)
             {
-                List<Meet> meets = _meetRepository.GetAllMeets().ToList();
-                
-                List<Meet> meetsTrue = _meetRepository.GetAllMeets().ToList();
-                
-                List<Meet> ownedMeets = new List<Meet>();
-                
-                foreach (var meet in meets)
-                {
-                    for (int i = 0; i < meet.MembersList.Count; i++)
-                    {
-                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].IsOwner)
-                        {
-                            ownedMeets.Add(meet);
-                        }
-
-                    }
-                }
+                List<Meet> ownedMeets = _meetRepository.GetAllMeetsForOwner(user).ToList();
                 return ownedMeets;
             }
             else
@@ -59,19 +43,7 @@ namespace MeetApp.Web.Services
 
             if (user != null)
             {
-                List<Meet> meets = _meetRepository.GetAllMeets().ToList();
-                List<Meet> memberMeets = new List<Meet>();
-                foreach (var meet in meets)
-                {
-                    for (int i = 0; i < meet.MembersList.Count; i++)
-                    {
-                        if (meet.MembersList[i].UserId == user.Id && meet.MembersList[i].IsOwner == false)
-                        {
-                            memberMeets.Add(meet);
-                        }
-
-                    }
-                }
+                List<Meet> memberMeets = _meetRepository.GetAllMeetsForMember(user).ToList();
                 return memberMeets;
             }
             else

@@ -24,11 +24,16 @@ namespace MeetApp.DAL.Repositories
             var meets = _context.Meets.Include(x => x.DatesList).Include(x => x.MembersList);
             return meets;
         }
-
-        // public IQueryable<Meet> GetAllOwnerMeets(User user)
-        // {
-        //     var meets = _context.
-        // }
+        public IQueryable<Meet> GetAllMeetsForOwner(User user)
+        {
+            var ownerMeets = _context.Meets.Include(x => x.DatesList).Include(x => x.MembersList).Where(x => x.MembersList.Any(c => c.UserId == user.Id && c.IsOwner));
+            return ownerMeets;
+        }
+        public IQueryable<Meet> GetAllMeetsForMember(User user)
+        {
+            var memberMeets = _context.Meets.Include(x => x.DatesList).Include(x => x.MembersList).Where(x => x.MembersList.Any(c => c.UserId == user.Id && !c.IsOwner));
+            return memberMeets;
+        }
 
         public IQueryable<T> Get<T>() where T : class
         {

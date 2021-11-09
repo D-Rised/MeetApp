@@ -8,11 +8,11 @@ using MeetApp.Web.Models;
 
 namespace MeetApp.Web.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
-        private readonly MeetRepository _meetRepository;
+        private readonly IMeetRepository _meetRepository;
 
-        public UserService(MeetRepository meetRepository)
+        public UserService(IMeetRepository meetRepository)
         {
             _meetRepository = meetRepository;
         }
@@ -21,6 +21,7 @@ namespace MeetApp.Web.Services
         {
             return _meetRepository.GetAllUsers().ToList();
         }
+
         public User GetUserById(Guid id)
         {
             return _meetRepository.Get<User>().FirstOrDefault(x => x.Id == id);

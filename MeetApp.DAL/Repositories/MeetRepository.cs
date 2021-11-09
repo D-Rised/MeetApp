@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeetApp.DAL.Repositories
 {
-    public class MeetRepository
+    public class MeetRepository : IMeetRepository
     {
         private readonly DataContext _context;
         
@@ -24,11 +24,13 @@ namespace MeetApp.DAL.Repositories
             var meets = _context.Meets.Include(x => x.DatesList).Include(x => x.MembersList);
             return meets;
         }
+
         public IQueryable<Meet> GetAllMeetsForOwner(User user)
         {
             var ownerMeets = _context.Meets.Include(x => x.DatesList).Include(x => x.MembersList).Where(x => x.MembersList.Any(c => c.UserId == user.Id && c.IsOwner));
             return ownerMeets;
         }
+
         public IQueryable<Meet> GetAllMeetsForMember(User user)
         {
             var memberMeets = _context.Meets.Include(x => x.DatesList).Include(x => x.MembersList).Where(x => x.MembersList.Any(c => c.UserId == user.Id && !c.IsOwner));

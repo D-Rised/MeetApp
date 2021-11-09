@@ -8,11 +8,11 @@ using MeetApp.Web.Models;
 
 namespace MeetApp.Web.Services
 {
-    public class MeetService
+    public class MeetService : IMeetService
     {
-        private readonly MeetRepository _meetRepository;
+        private readonly IMeetRepository _meetRepository;
 
-        public MeetService(MeetRepository meetRepository)
+        public MeetService(IMeetRepository meetRepository)
         {
             _meetRepository = meetRepository;
         }

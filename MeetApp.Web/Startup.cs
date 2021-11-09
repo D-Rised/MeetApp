@@ -48,9 +48,9 @@ namespace MeetApp.Web
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
             });
 
-            services.AddTransient<MeetRepository>();
-            services.AddTransient<UserService>();
-            services.AddTransient<MeetService>();
+            services.AddScoped<IMeetRepository, MeetRepository>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IMeetService, MeetService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

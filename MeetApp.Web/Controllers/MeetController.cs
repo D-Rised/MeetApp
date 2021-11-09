@@ -17,12 +17,12 @@ namespace MeetApp.Web.Controllers
     [Authorize]
     public class MeetController : Controller
     {
-        private readonly UserService _userService;
-        private readonly MeetService _meetService;
+        private readonly IUserService _userService;
+        private readonly IMeetService _meetService;
 
         private Guid _userGuid => new Guid(User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value);
 
-        public MeetController(UserService userService, MeetService meetService)
+        public MeetController(IUserService userService, IMeetService meetService)
         {
             _userService = userService;
             _meetService = meetService;
